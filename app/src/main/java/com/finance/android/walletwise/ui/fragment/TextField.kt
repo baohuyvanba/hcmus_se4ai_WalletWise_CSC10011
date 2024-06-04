@@ -20,7 +20,8 @@ fun NormalTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
     isPassword: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null
+    readOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -32,6 +33,7 @@ fun NormalTextField(
         keyboardOptions = keyboardOptions,
         singleLine = singleLine,
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        trailingIcon = trailingIcon
+        trailingIcon = trailingIcon,
+        readOnly = readOnly
     )
 }
