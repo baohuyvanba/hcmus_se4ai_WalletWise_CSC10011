@@ -1,31 +1,36 @@
-package com.finance.android.walletwise.model.Category
-
+import android.content.Context
 import com.finance.android.walletwise.model.Category.Category
 import com.finance.android.walletwise.model.Category.CategoryDao
 import kotlinx.coroutines.flow.Flow
 
-class CategoryRepository(private val categoryDao: CategoryDao) {
+interface CategoryRepository {
+    fun getCategoriesStream(): Flow<List<Category>>
 
-    // Fetch all categories
-    val allCategories: Flow<List<Category>> = categoryDao.getCategories()
+    fun getCategoryStream(id: Int): Flow<Category?>
 
-    // Fetch a single category by its ID
-    fun getCategoryById(id: Int): Flow<Category> {
-        return categoryDao.getCategoryById(id)
-    }
+    suspend fun insertCategory(category: Category)
 
-    // Insert a new category into the database
-    suspend fun insertCategory(category: Category) {
-        categoryDao.insertCategory(category)
-    }
+    suspend fun deleteCategory(category: Category)
 
-    // Update an existing category
-    suspend fun updateCategory(category: Category) {
-        categoryDao.updateCategory(category)
-    }
+    suspend fun updateCategory(category: Category)
+}
 
-    // Delete a category from the database
-    suspend fun deleteCategory(category: Category) {
-        categoryDao.deleteCategory(category)
+class OfflineCategoryRepository(private val categoryDao: CategoryDao) : CategoryRepository {
+    override fun getCategoriesStream(): Flow<List<Category>> = categoryDao.getCategories()
+
+    override fun getCategoryStream(id: Int): Flow<Category?> = categoryDao.getCategoryById(id)
+
+    override suspend fun insertCategory(category: Category) = categoryDao.insertCategory(category)
+
+    override suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)
+
+    override suspend fun updateCategory(category: Category) = categoryDao.updateCategory(category)
+}
+
+class AppContainer(context: Context) {
+    private val categoryDao: CategoryDao = CategoryDatabase.getDatabase(context).categoryDao()
+
+    val categorysRepository: CategoryRepository by lazy {
+        OfflineCategoryRepository(categoryDao)
     }
 }
