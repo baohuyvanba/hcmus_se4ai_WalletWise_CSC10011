@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 data class TransactionUiState(
     val id: Int=0,
     val amount: String="",
-    val category: Int = 0,
+    val category: String="",
     val type: String="",
     val date: LocalDate=LocalDate.now(),
     val time: LocalTime=LocalTime.now(),

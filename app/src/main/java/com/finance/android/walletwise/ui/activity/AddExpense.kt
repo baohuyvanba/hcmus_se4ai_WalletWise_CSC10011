@@ -316,10 +316,6 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
     }
 }
 
-//fun DropdownMenuItem(onClick: () -> Unit, interactionSource: @Composable () -> Unit) {
-//
-//}
-
 @Composable
 fun InputChipContent2() {
     Box(modifier = Modifier

@@ -27,7 +27,7 @@ import java.time.LocalTime
 data class Transaction(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "amount") val amount: Double,
-    @ColumnInfo(name = "category_id") val category: Int,
+    @ColumnInfo(name = "category_name") val category: String,
     @ColumnInfo(name = "type") val type: String, // "income" or "expense"
     @ColumnInfo(name = "date") val date: LocalDate, // Unix timestamp in milliseconds
     @ColumnInfo(name = "time") val time: LocalTime,
@@ -38,7 +38,7 @@ data class ExpenseWithRelation(
     @Embedded
     val expense: Transaction,
     @Relation(
-        parentColumn = "category_id",
+        parentColumn = "category_name",
         entityColumn = "id"
     )
     val category: Category,
