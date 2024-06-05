@@ -1,11 +1,15 @@
 package com.finance.android.walletwise.ui.activity
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,9 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,17 +39,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finance.android.walletwise.R
 import com.finance.android.walletwise.ui.fragment.NormalButton
+import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
+import com.finance.android.walletwise.model.Transaction.TransactionUiState
+import com.finance.android.walletwise.ui.AppViewModelProvider
 
-@Preview(showBackground = true)
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
+//@Preview(showBackground = true)
 @Composable
-fun MyTabLayout() {
+fun AddExpenseSreen(transactionUiState: TransactionUiState,
+                    viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                    navigateBack: () -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+
     val tabTitles = listOf("Manual", "Scan", "Message")
     // Thêm biến onCloseClick
-    val onCloseClick: () -> Unit = {
-        // Xử lý sự kiện onClick tại đây
-        println("Close button clicked!")
-    }
 
     Box(
         modifier = Modifier
@@ -77,7 +96,10 @@ fun MyTabLayout() {
                 )
                 // Close Button
                 IconButton(
-                    onClick = onCloseClick,
+                    onClick = { coroutineScope.launch {
+                        viewModel.saveTransactionIncome()
+                        navigateBack()
+                    }},
                     modifier = Modifier
                         .padding(bottom = 8.dp)
                         .size(30.dp)
@@ -114,11 +136,11 @@ fun MyTabLayout() {
             }
 
             // Content
-            when (selectedTabIndex) {
-                0 -> TabContent1()
-                1 -> TabContent2()
-                2 -> TabContent3()
-            }
+//            when (selectedTabIndex) {
+//                0 -> TabContent1()
+//                1 -> TabContent2()
+//                2 -> TabContent3()
+//            }
         }
     }
 
@@ -128,10 +150,13 @@ fun MyTabLayout() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabContent1() {
+fun TabContent1(transactionUiState: TransactionUiState,
+                viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory
+                )) {
     var amount by remember { mutableStateOf("") }
     var selectedChipIndex by remember { mutableStateOf(0) }
     val chipTitles = listOf("EXPENSE", "INCOME")
+
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
@@ -143,13 +168,12 @@ fun TabContent1() {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            NormalTextField(
-                value = amount,
-                onValueChange = { amount = it },
-                label = "Amount",
-                modifier = Modifier
-                    .padding(top = 14.dp)
-                    .fillMaxWidth()
+
+            EditableAmountField(
+                value = transactionUiState.amount,
+                transactionUiState = transactionUiState,
+                onValueChange=viewModel::updateUiState
+
             )
             Row(
                 modifier = Modifier
@@ -194,26 +218,23 @@ fun TabContent1() {
             }
 
             // Content
-            when (selectedChipIndex) {
-                0 -> InputChipContent1()
-                1 -> InputChipContent2()
-            }
+//            when (selectedChipIndex) {
+//                0 -> InputChipContent1()
+//                1 -> InputChipContent2()
+//            }
 
-//            NormalButton(
-//                text = "Save",
-//                onClick = { /* TODO */ },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(50.dp)
-//            )
         }
     }
 }
 
 @Composable
-fun InputChipContent1() {
+fun InputChipContent1(transactionUiState: TransactionUiState,
+                      viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      navigateBack: () -> Unit,
+                      coroutineScope: CoroutineScope
+) {
     var expanded by remember { mutableStateOf(false) } // Khởi tạo là false để menu không mở ban đầu
-    val menuItems = listOf("Item 1", "Item 2", "Item 3")
+  //  val menuItems = listOf("Item 1", "Item 2", "Item 3")
     val selectedItem = remember { mutableStateOf("") }
     var noteExpense by remember { mutableStateOf("") }
 
@@ -229,27 +250,30 @@ fun InputChipContent1() {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            OutlinedTextField(
-                value = selectedItem.value,
-                onValueChange = { },
-                placeholder = { Text("Category") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-            )
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                menuItems.forEach { item ->
-                    DropdownMenuItem(onClick = {
-                        selectedItem.value = item
-                        expanded = false
-                    }) {
-                        Text(text = item)
-                    }
-                }
-            }
+//            OutlinedTextField(
+//                value = selectedItem.value,
+//                onValueChange = { },
+//                placeholder = { Text("Category") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .clickable { expanded = true },
+//            )
+            CategoryDropdown(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
+
+
+//            DropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = { expanded = false },
+//            ) {
+//                menuItems.forEach { item ->
+//                    DropdownMenuItem(onClick = {
+//                        selectedItem.value = item
+//                        expanded = false
+//                    }) {
+//                        Text(text = item)
+//                    }
+//                }
+//            }
 
             // DatePicker
             NormalTextField(
@@ -261,14 +285,15 @@ fun InputChipContent1() {
                     .fillMaxWidth()
             )
             //Note
-            NormalTextField(
-                value = noteExpense,
-                onValueChange = { noteExpense = it },
-                label = "Description",
-                modifier = Modifier
-                    .padding(top = 30.dp)
-                    .fillMaxWidth()
-            )
+            DescriptionTextField(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
+//            NormalTextField(
+//                value = noteExpense,
+//                onValueChange = { noteExpense = it },
+//                label = "Description",
+//                modifier = Modifier
+//                    .padding(top = 30.dp)
+//                    .fillMaxWidth()
+//            )
             //Button
         }
         Column(
@@ -279,7 +304,10 @@ fun InputChipContent1() {
         {
             NormalButton(
                 text = "Save",
-                onClick = { /* TODO */ },
+                onClick = { coroutineScope.launch {
+                    viewModel.saveTransactionExpense()
+                    navigateBack()
+                }},
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
@@ -288,9 +316,9 @@ fun InputChipContent1() {
     }
 }
 
-fun DropdownMenuItem(onClick: () -> Unit, interactionSource: @Composable () -> Unit) {
-
-}
+//fun DropdownMenuItem(onClick: () -> Unit, interactionSource: @Composable () -> Unit) {
+//
+//}
 
 @Composable
 fun InputChipContent2() {
@@ -391,4 +419,107 @@ fun TabContent3() {
             )
         }
     }
+}
+
+@Composable
+fun EditableAmountField(
+    value: String,
+    transactionUiState: TransactionUiState,
+    onValueChange: (TransactionUiState) -> Unit,
+//    placeholder:String
+) {
+
+    NormalTextField(
+        value = value,
+        onValueChange = {onValueChange(transactionUiState.copy(amount = it))  },
+        label = "Amount",
+        modifier = Modifier
+            .padding(top = 14.dp)
+            .fillMaxWidth(),
+        singleLine = true
+    )
+}
+
+val categoryOptions = listOf("Shopping", "Food", "Entertainment", "Others")
+
+
+@Composable
+fun CategoryDropdown(
+    transactionUiState: TransactionUiState,
+    onValueChange: (TransactionUiState) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val categoryOptions = listOf("Category 1", "Category 2", "Category 3") // Define your categories here
+
+    Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.White)
+                .border(
+                    width = 1.5.dp,
+                    color = Color(0xFFF1F1FA),
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Text(
+                text = transactionUiState.category,
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                color = Color(0xFF91919F)
+            )
+            IconButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Expand category dropdown",
+                    tint = Color(0xFF91919F)
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(Color(0xFFFCFCFC))
+            ) {
+                categoryOptions.forEach { category ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onValueChange(transactionUiState.copy(category = category))
+                            expanded = false
+                        },
+                        text = {
+                            Text(text = category, color = Color.Black)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+
+//fun DropdownMenuItem(onClick: () -> Unit, interactionSource: () -> Unit) {
+//
+//}
+
+
+@Composable
+fun DescriptionTextField(transactionUiState: TransactionUiState,
+                         onValueChange: (TransactionUiState) -> Unit = {}) {
+    NormalTextField(
+        value = transactionUiState.description,
+        onValueChange = { onValueChange(transactionUiState.copy(description=it))},
+        label = "Description",
+        modifier = Modifier
+            .padding(top = 30.dp)
+            .fillMaxWidth()
+    )
 }
