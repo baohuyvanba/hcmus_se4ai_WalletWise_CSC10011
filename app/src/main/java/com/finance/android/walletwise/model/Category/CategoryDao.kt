@@ -1,7 +1,6 @@
 package com.finance.android.walletwise.model.Category
 
 import androidx.room.*
-//import com.example.incomeexpensetracker.data.model.Category
 import kotlinx.coroutines.flow.Flow
 
 @Dao
