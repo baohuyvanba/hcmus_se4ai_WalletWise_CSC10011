@@ -47,7 +47,7 @@ class ExpenseViewModel(private val transactionRepository: TransactionRepository)
             .format(time)*/
         transactionUiState = transactionUiState.copy(time = time)
     }
-    fun updateCategory(category: Int) {
+    fun updateCategory(category: String) {
         transactionUiState = transactionUiState.copy(category = category)
     }
     fun updateAmount(amount: Double) {

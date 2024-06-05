@@ -7,10 +7,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.WalletWiseActivity
+import com.finance.android.walletwise.ui.viewmodel.TransactionsScreenViewModel
+
 object AppViewModelProvider{
     val Factory= viewModelFactory {
         initializer {
             ExpenseViewModel(
+                transacrionApplicatiom().container.transactionRepository
+            )
+        }
+        initializer {
+            TransactionsScreenViewModel(
                 transacrionApplicatiom().container.transactionRepository
             )
         }

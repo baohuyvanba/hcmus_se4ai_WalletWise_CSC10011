@@ -1,11 +1,6 @@
 package com.finance.android.walletwise.ui.activity
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,71 +8,87 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
+
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
+
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import com.finance.android.walletwise.ui.fragment.NormalTextField
-import com.finance.android.walletwise.ui.fragment.NormalButton
+import androidx.compose.ui.text.style.TextOverflow
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.finance.android.walletwise.model.Expense
 import androidx.navigation.NavController
 import com.finance.android.walletwise.R
-import com.finance.android.walletwise.ui.theme.*
+import com.finance.android.walletwise.WalletWiseDestination
+import com.finance.android.walletwise.ui.AppViewModelProvider
 
-const val EXPENSE_SCREEN_SUCCESS_CLICK_ITEM_TEST_TAG = "EXPENSE_SCREEN_SUCCESS_CLICK_ITEM_TEST_TAG"
+import com.finance.android.walletwise.ui.viewmodel.TransactionsScreenViewModel
+import com.finance.android.walletwise.model.Transaction.Transaction
+
+
+import java.time.format.DateTimeFormatter
+
 
 
 //Click có vẻ fail-->fix
-@Preview(showBackground = true)
-@Composable
-fun PreviewListExpenseScreen() {
-    ListExpenseScreen(
-        onExpenseClick = { expense ->
-            // Điều này sẽ chỉ in ra một log khi một expense được click trong preview
-            println("Expense clicked: $expense")
-        }
-    )
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewListExpenseScreen() {
+//    ListExpenseScreen(
+//        onExpenseClick = { expense ->
+//            // Điều này sẽ chỉ in ra một log khi một expense được click trong preview
+//            println("Expense clicked: $expense")
+//        }
+//    )
+//}
+object TransactionEditDestination : WalletWiseDestination {
+    override val route = "transaction_edit"
+
+    override val icon: ImageVector = Icons.Default.Home
+    const val transactionIdArg = "transactionId"
+    val routeWithArgs = "$route/{$transactionIdArg}"
 }
+object IncomeTransactionEditDestination : WalletWiseDestination {
+    override val route = "transaction_editincome"
+    override val icon: ImageVector = Icons.Default.Home
+    const val transactionIdArg = "transactionId"
+    val routeWithArgs = "$route/{$transactionIdArg}"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListExpenseScreen(onExpenseClick: (expense: Expense) -> Unit) {
-    val sampleExpenses = listOf(
-        Expense(1, 70.0, "Shopping", "Groceries", "01/01/2022", "expense"),
-        Expense(2, 150.0, "House", "Rent", "01/01/2022", "expense")
-    )
+fun ListExpenseScreen(viewModel: TransactionsScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      navController: NavController) {
+    val transactionScreenUiState by viewModel.transactionsScreenUiState.collectAsState()
+    val transactionsScreenUiStateToday by viewModel.transactionsScreenUiStateToday.collectAsState()
+    val transactionsScreenUiStateWeek by viewModel.transactionsScreenUiStateWeek.collectAsState()
+    val transactionsScreenUiStateMonth by viewModel.transactionsScreenUiStateMonth.collectAsState()
+    val transactionsScreenUiStateYear by viewModel.transactionsScreenUiStateYear.collectAsState()
+
     Scaffold(
         //Fix
         topBar = {
@@ -99,15 +110,24 @@ fun ListExpenseScreen(onExpenseClick: (expense: Expense) -> Unit) {
             }
         }
     ) { innerPadding ->
-        ExpenseList(expenses = sampleExpenses, modifier = Modifier.padding(innerPadding), onExpenseClick = onExpenseClick)
+        if (transactionScreenUiState.transactionList.isEmpty()) {
+            Text(
+                text = "No Items",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(15.dp)
+            )
+        } else
+        ExpenseList(transactionList = transactionsScreenUiStateWeek.transactionList,
+            navController = navController,
+            modifier = Modifier.padding(innerPadding))
     }
 }
 
 @Composable
-fun ExpenseList(expenses: List<Expense>,modifier: Modifier = Modifier,onExpenseClick: (expense: Expense) -> Unit) {
+fun ExpenseList(transactionList: List<Transaction>,navController: NavController,modifier: Modifier = Modifier) {
     LazyColumn(modifier = modifier) {
-        items(expenses, key = { it.id }) { expense ->
-            ExpenseCard(expense = expense, onExpenseClick = onExpenseClick)
+        items(items = transactionList, key = { it.id }) { item ->
+            TransactionCard(transaction=item,navController = navController)
         }
     }
 }
@@ -121,56 +141,210 @@ fun getIcon(iconName: String): ImageVector {
     }
 }
 @Composable
-fun ExpenseCard(expense: Expense, onExpenseClick: (expense: Expense) -> Unit) {
-    val category = expense.category
-    Card(
-        shape = RoundedCornerShape(8.dp),
+fun TransactionCard(transaction: Transaction,
+                    navController: NavController
+) {
+
+    val formattedDate by remember {
+        derivedStateOf {
+            DateTimeFormatter.ofPattern("MMM dd, yyyy").format(transaction.date)
+        }
+    }
+    val formattedTime by remember {
+        derivedStateOf {
+            DateTimeFormatter.ofPattern("hh:mm").format(transaction.time)
+        }
+    }
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable{
-                onExpenseClick(expense)
-            }.testTag(EXPENSE_SCREEN_SUCCESS_CLICK_ITEM_TEST_TAG.plus("_${expense.id}"))
-
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            category?.let {
-                Icon(
-                    imageVector = getIcon(iconName = it.iconName),
-                    contentDescription = null,
-                    tint = Color(0xFF6A6AFF),
-                    modifier = Modifier.size(40.dp)
-                )
+            .padding(10.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFFFFF6F0))
+            .clickable {
+                if (transaction.type.equals("Expense")) {
+                    navController.navigate("${TransactionEditDestination.route}/${transaction.id}")
+                } else {
+                    navController.navigate("${IncomeTransactionEditDestination.route}/${transaction.id}")
+                }
             }
+    )
+    {
+        if (transaction.type.equals("Expense")) {
 
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = expense.description,
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = expense.date,
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .size(75.dp)
+                            .background(
+                                if (transaction.category.equals("Shopping")) {
+                                    Color(0xFFFCEED4)
+                                } else if (transaction.category.equals("Food")) {
+                                    Color(0xFFFDD5D7)
+                                } else if (transaction.category.equals("Entertainment")) {
+                                    Color(0xFFB6E7E7)
+                                } else {
+                                    Color(0xFFEEE5FF)
+                                }
+                            )
+                            .padding(5.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id =
+                                if (transaction.category.equals("Shopping")) {
+                                    R.drawable.shopping
+                                } else if (transaction.category.equals("Food")) {
+                                    R.drawable.img_11
+                                } else if (transaction.category.equals("Entertainment")) {
+                                    R.drawable.entertain
+                                } else {
+                                    R.drawable.otherss
+                                }
+                            ), contentDescription = "Grocery",
+                            modifier = Modifier.size(40.dp),
+                            tint =
+                            if (transaction.category.equals("Shopping")) {
+                                Color(0xFFFCAC12)
+                            } else if (transaction.category.equals("Food")) {
+                                Color(0xFFFD3C4A)
+                            } else if (transaction.category.equals("Entertainment")) {
+                                Color(0xFF11808F)
+                            } else {
+                                Color(0xFF7F3DFF)
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = transaction.category,
+                            fontSize = 18.sp,
+                            color = Color(0xFF292B2D)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = transaction.description,
+                            fontSize = 15.sp,
+                            color = Color(0xFF91919F),
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            modifier=Modifier.fillMaxWidth(0.75f)
+                        )
+                    }
+                }
+                Column(
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = transaction.amount.toString(), fontSize = 18.sp,
+                        color =
+                        Color(0xFFFD3C4A)
+
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Row() {
+                        Text(text = formattedTime, fontSize = 13.sp, color = Color(0xFF91919F))
+                    }
+                }
             }
-            Text(
-                text = expense.amount.toString(),
-                color = Color.Black,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .size(75.dp)
+                            .background(
+                                if (transaction.category.equals("Salary")) {
+                                    Color(0xFFCFFAEA)
+                                } else if (transaction.category.equals("Gifts")) {
+                                    Color(0xFFBDDCFF)
+                                } else {
+                                    Color(0xFFEEE5FF)
+                                }
+                            )
+                            .padding(5.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id =
+                                if (transaction.category.equals("Salary")) {
+                                    R.drawable.salary
+                                } else if (transaction.category.equals("Gifts")) {
+                                    R.drawable.gifts
+                                } else {
+                                    R.drawable.otherss
+                                }
+
+                            ), contentDescription = "Grocery",
+                            modifier = Modifier.size(40.dp),
+                            tint =
+                            if (transaction.category.equals("Salary")) {
+                                Color(0xFF00A86B)
+                            } else if (transaction.category.equals("Gifts")) {
+                                Color(0xFF0077FF)
+                            } else {
+                                Color(0xFF7F3DFF)
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = transaction.category,
+                            fontSize = 18.sp,
+                            color = Color(0xFF292B2D)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = transaction.description,
+                            fontSize = 15.sp,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            color = Color(0xFF91919F),
+                            modifier=Modifier.fillMaxWidth(0.75f)
+                        )
+                    }
+                }
+                Column(
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = transaction.amount.toString(), fontSize = 18.sp,
+                        color =
+                        Color(0xFF00A86B)
+
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Row() {
+                        Text(text = formattedTime, fontSize = 13.sp, color = Color(0xFF91919F))
+                    }
+                }
+
+            }
+
         }
     }
 }
-

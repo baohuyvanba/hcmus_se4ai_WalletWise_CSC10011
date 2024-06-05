@@ -1,13 +1,17 @@
 package com.finance.android.walletwise.ui.activity
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,13 +19,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,8 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.TextStyle
 import com.finance.android.walletwise.ui.fragment.NormalTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,16 +48,16 @@ import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.model.Transaction.TransactionUiState
 import com.finance.android.walletwise.ui.AppViewModelProvider
 
-
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
-//@Preview(showBackground = true)
+@Composable
+fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),navigateBack: () -> Unit){
+    AddExpenseSreen(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack)
+}
 @Composable
 fun AddExpenseSreen(transactionUiState: TransactionUiState,
                     viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
@@ -136,16 +141,13 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
             }
 
             // Content
-//            when (selectedTabIndex) {
-//                0 -> TabContent1()
-//                1 -> TabContent2()
-//                2 -> TabContent3()
-//            }
+            when (selectedTabIndex) {
+                0 -> TabContent1(transactionUiState = viewModel.transactionUiState)
+                1 -> TabContent2()
+                2 -> TabContent3()
+            }
         }
     }
-
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -276,14 +278,15 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
 //            }
 
             // DatePicker
-            NormalTextField(
-                value = noteExpense,
-                onValueChange = { noteExpense = it },
-                label = "Date",
-                modifier = Modifier
-                    .padding(top = 30.dp)
-                    .fillMaxWidth()
-            )
+//            NormalTextField(
+//                value = noteExpense,
+//                onValueChange = { noteExpense = it },
+//                label = "Date",
+//                modifier = Modifier
+//                    .padding(top = 30.dp)
+//                    .fillMaxWidth()
+//            )
+            datetimepicker(onValueChange=viewModel::updateUiState, transactionUiState = transactionUiState)
             //Note
             DescriptionTextField(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
 //            NormalTextField(
@@ -518,4 +521,75 @@ fun DescriptionTextField(transactionUiState: TransactionUiState,
             .padding(top = 30.dp)
             .fillMaxWidth()
     )
+}
+
+
+@Composable
+fun datetimepicker(transactionUiState: TransactionUiState, onValueChange: (TransactionUiState) -> Unit) {
+    var pickedDate by remember { mutableStateOf(transactionUiState.date) }
+    var pickedTime by remember { mutableStateOf(transactionUiState.time) }
+
+    val formattedDate by remember {
+        derivedStateOf {
+            DateTimeFormatter.ofPattern("MMM dd yyyy").format(pickedDate)
+        }
+    }
+    val formattedTime by remember {
+        derivedStateOf {
+            DateTimeFormatter.ofPattern("hh:mm a").format(pickedTime)
+        }
+    }
+
+    val context = LocalContext.current
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val newDate = LocalDate.of(year, month + 1, dayOfMonth)
+            pickedDate = newDate
+            onValueChange(transactionUiState.copy(date = newDate))
+        },
+        pickedDate.year,
+        pickedDate.monthValue - 1,
+        pickedDate.dayOfMonth
+    )
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val newTime = LocalTime.of(hourOfDay, minute)
+            pickedTime = newTime
+            onValueChange(transactionUiState.copy(time = newTime))
+        },
+        pickedTime.hour,
+        pickedTime.minute,
+        false // false for 12 hour time, true for 24 hour time
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            colors = ButtonDefaults.buttonColors(),
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp)),
+            onClick = { datePickerDialog.show() }
+        ) {
+            Text(text = formattedDate, style = TextStyle(color = Color.Black))
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Button(
+            colors = ButtonDefaults.buttonColors(),
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp)),
+            onClick = { timePickerDialog.show() }
+        ) {
+            Text(text = formattedTime, style = TextStyle(color = Color.Black))
+        }
+    }
 }
