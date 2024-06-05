@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.finance.android.walletwise.model.Transaction.AppContainer
+import com.finance.android.walletwise.model.Transaction.AppDataContainer
 import com.finance.android.walletwise.ui.activity.*
 
 //Import UI file
@@ -22,11 +24,14 @@ import com.finance.android.walletwise.ui.viewmodel.Screen
 //Application start point
 class WalletWiseActivity : ComponentActivity()
 {
+    lateinit var container: AppContainer
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setContent {
             WalletWiseApplication()
+            container = AppDataContainer(this)
+
         }
     }
 }
