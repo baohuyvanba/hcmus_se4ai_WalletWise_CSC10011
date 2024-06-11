@@ -11,8 +11,8 @@ import java.time.LocalTime
     foreignKeys = [
         ForeignKey(
             entity = Category::class,
-            parentColumns = arrayOf("id"),
-            childColumns = arrayOf("category_id"),
+            parentColumns = arrayOf("name"),
+            childColumns = arrayOf("category_name"),
             onDelete = CASCADE,
         )
 //        ,
@@ -39,7 +39,7 @@ data class ExpenseWithRelation(
     val expense: Transaction,
     @Relation(
         parentColumn = "category_name",
-        entityColumn = "id"
+        entityColumn = "name"
     )
     val category: Category,
 //    @Relation(
