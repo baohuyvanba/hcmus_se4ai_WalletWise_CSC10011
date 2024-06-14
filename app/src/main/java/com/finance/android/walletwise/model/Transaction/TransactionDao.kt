@@ -3,17 +3,17 @@ package com.finance.android.walletwise.model.Transaction
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import com.finance.android.walletwise.model.Transaction.Transaction
-import com.finance.android.walletwise.model.Transaction.ExpenseWithRelation
+//import com.finance.android.walletwise.model.Transaction.ExpenseWithRelation
 
 @Dao
 interface TransactionDao {
-    @androidx.room.Transaction
-    @Query("SELECT * FROM transaction_table ORDER BY id DESC")
-    fun getFlowOfExpensesWithRelation(): Flow<List<ExpenseWithRelation>>
-
-    @androidx.room.Transaction
-    @Query("SELECT * FROM transaction_table WHERE id = :id")
-    fun getExpenseWithRelationById(id: Int): Flow<ExpenseWithRelation>
+//    @androidx.room.Transaction
+//    @Query("SELECT * FROM transaction_table ORDER BY id DESC")
+//    fun getFlowOfExpensesWithRelation(): Flow<List<ExpenseWithRelation>>
+//
+//    @androidx.room.Transaction
+//    @Query("SELECT * FROM transaction_table WHERE id = :id")
+//    fun getExpenseWithRelationById(id: Int): Flow<ExpenseWithRelation>
 
     @Query("SELECT * FROM transaction_table WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
     fun getTransactionsInRange(startDate: Long, endDate: Long): Flow<List<Transaction>>

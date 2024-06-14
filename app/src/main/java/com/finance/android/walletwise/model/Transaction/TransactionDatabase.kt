@@ -22,7 +22,8 @@ abstract class TransactionDatabase : RoomDatabase() {
                 Room.databaseBuilder(context,
                     TransactionDatabase::class.java,
                     "transaction_database"
-                ).build().also {
+                ).fallbackToDestructiveMigration().build()
+                    .also {
                     instance = it
                 }
             }

@@ -4,7 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import com.finance.android.walletwise.ui.fragment.NormalTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,14 +49,30 @@ import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.model.Transaction.TransactionUiState
 import com.finance.android.walletwise.ui.AppViewModelProvider
 
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@Preview(showBackground = true)
 @Composable
-fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),navigateBack: () -> Unit){
+fun PreviewAddExpenseScreen() {
+    val sampleUiState = TransactionUiState(
+        amount = "0.0",
+        category = "Food",
+        date = LocalDate.now(),
+        time = LocalTime.now(),
+        description = "1100"
+    )
+    AddExpenseSreen(
+        transactionUiState = sampleUiState,
+        navigateBack = {}
+    )
+}
+@Composable
+fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), navigateBack: () -> Unit){
     AddExpenseSreen(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack)
 }
 @Composable
@@ -142,7 +159,7 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
 
             // Content
             when (selectedTabIndex) {
-                0 -> TabContent1(transactionUiState = viewModel.transactionUiState)
+                0 -> TabContent1(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
                 1 -> TabContent2()
                 2 -> TabContent3()
             }
@@ -153,8 +170,10 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabContent1(transactionUiState: TransactionUiState,
-                viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory
-                )) {
+                viewModel: ExpenseViewModel= viewModel(factory= AppViewModelProvider.Factory),
+                navigateBack: () -> Unit,
+                coroutineScope: CoroutineScope
+                ) {
     var amount by remember { mutableStateOf("") }
     var selectedChipIndex by remember { mutableStateOf(0) }
     val chipTitles = listOf("EXPENSE", "INCOME")
@@ -220,10 +239,10 @@ fun TabContent1(transactionUiState: TransactionUiState,
             }
 
             // Content
-//            when (selectedChipIndex) {
-//                0 -> InputChipContent1()
-//                1 -> InputChipContent2()
-//            }
+            when (selectedChipIndex) {
+                0 -> InputChipContent1(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
+                1 -> InputChipContent2()
+            }
 
         }
     }
@@ -231,7 +250,7 @@ fun TabContent1(transactionUiState: TransactionUiState,
 
 @Composable
 fun InputChipContent1(transactionUiState: TransactionUiState,
-                      viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      viewModel: ExpenseViewModel= viewModel(factory= AppViewModelProvider.Factory),
                       navigateBack: () -> Unit,
                       coroutineScope: CoroutineScope
 ) {
@@ -252,52 +271,14 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
-//            OutlinedTextField(
-//                value = selectedItem.value,
-//                onValueChange = { },
-//                placeholder = { Text("Category") },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable { expanded = true },
-//            )
+
             CategoryDropdown(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
 
 
-//            DropdownMenu(
-//                expanded = expanded,
-//                onDismissRequest = { expanded = false },
-//            ) {
-//                menuItems.forEach { item ->
-//                    DropdownMenuItem(onClick = {
-//                        selectedItem.value = item
-//                        expanded = false
-//                    }) {
-//                        Text(text = item)
-//                    }
-//                }
-//            }
-
-            // DatePicker
-//            NormalTextField(
-//                value = noteExpense,
-//                onValueChange = { noteExpense = it },
-//                label = "Date",
-//                modifier = Modifier
-//                    .padding(top = 30.dp)
-//                    .fillMaxWidth()
-//            )
             datetimepicker(onValueChange=viewModel::updateUiState, transactionUiState = transactionUiState)
             //Note
             DescriptionTextField(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
-//            NormalTextField(
-//                value = noteExpense,
-//                onValueChange = { noteExpense = it },
-//                label = "Description",
-//                modifier = Modifier
-//                    .padding(top = 30.dp)
-//                    .fillMaxWidth()
-//            )
-            //Button
+
         }
         Column(
             modifier = Modifier

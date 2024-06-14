@@ -2,6 +2,7 @@ package com.finance.android.walletwise.model.Transaction
 
 import android.content.Context
 
+
 interface AppContainer {
     val transactionRepository: TransactionRepository
 }
