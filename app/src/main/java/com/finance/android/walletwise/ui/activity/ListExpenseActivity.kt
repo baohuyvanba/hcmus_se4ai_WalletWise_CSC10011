@@ -49,10 +49,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.finance.android.walletwise.R
 import com.finance.android.walletwise.WalletWiseDestination
+import com.finance.android.walletwise.model.Category.CategoryUIState
 import com.finance.android.walletwise.ui.AppViewModelProvider
 
 import com.finance.android.walletwise.ui.viewmodel.TransactionsScreenViewModel
 import com.finance.android.walletwise.model.Transaction.Transaction
+import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
 
 
 import java.time.format.DateTimeFormatter
@@ -191,23 +193,27 @@ fun timedropdown(selectedCategory: String, onCategorySelected: (String) -> Unit)
 fun ExpenseList(transactionList: List<Transaction>,navController: NavController) {
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
         items(items = transactionList, key = { it.id }) { item ->
-            TransactionCard(transaction=item,navController = navController)
+//            TransactionCard(transaction=item,navController = navController)
         }
     }
 }
 
-@Composable
-fun getIcon(iconName: String): ImageVector {
-    return when (iconName) {
-        "ShoppingCart" -> Icons.Default.ShoppingCart
-        "Home" -> Icons.Default.Home
-        else -> Icons.Default.ShoppingCart // default icon if none match
-    }
-}
+//@Composable
+//fun getIcon(iconName: String): ImageVector {
+//    return when (iconName) {
+//        "ShoppingCart" -> Icons.Default.ShoppingCart
+//        "Home" -> Icons.Default.Home
+//        else -> Icons.Default.ShoppingCart // default icon if none match
+//    }
+//}
 @Composable
 fun TransactionCard(transaction: Transaction,
+                    categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
                     navController: NavController
 ) {
+    val categoryListState by categoryViewModel.expenseCategories.collectAsState()
+    val selectedCategoryName = categoryListState.find { it.id == transaction.idCategory }?.name ?: "Select a Category"
+
 
     val formattedDate by remember {
         derivedStateOf {
@@ -251,11 +257,11 @@ fun TransactionCard(transaction: Transaction,
                             .clip(RoundedCornerShape(15.dp))
                             .size(75.dp)
                             .background(
-                                if (transaction.idCategory.equals("Shopping")) {
+                                if (selectedCategoryName.equals("Shopping")) {
                                     Color(0xFFFCEED4)
-                                } else if (transaction.idCategory.equals("Food")) {
+                                } else if (selectedCategoryName.equals("Food")) {
                                     Color(0xFFFDD5D7)
-                                } else if (transaction.idCategory.equals("Entertainment")) {
+                                } else if (selectedCategoryName.equals("Entertainment")) {
                                     Color(0xFFB6E7E7)
                                 } else {
                                     Color(0xFFEEE5FF)
@@ -266,7 +272,7 @@ fun TransactionCard(transaction: Transaction,
                         Icon(
                             painter = painterResource(
                                 id =
-                                if (transaction.idCategory.equals("Shopping")) {
+                                if (selectedCategoryName.equals("Shopping")) {
                                     R.drawable.shopping
                                 } else if (transaction.idCategory.equals("Food")) {
                                     R.drawable.img_11
@@ -292,7 +298,7 @@ fun TransactionCard(transaction: Transaction,
                     Spacer(modifier = Modifier.width(5.dp))
                     Column(modifier = Modifier.padding(10.dp)) {
                         Text(
-                            text = transaction.idCategory.toString(),
+                            text = selectedCategoryName,
                             fontSize = 18.sp,
                             color = Color(0xFF292B2D)
                         )
@@ -376,7 +382,7 @@ fun TransactionCard(transaction: Transaction,
                     Spacer(modifier = Modifier.width(5.dp))
                     Column(modifier = Modifier.padding(10.dp)) {
                         Text(
-                            text = transaction.idCategory.toString(),
+                            text = selectedCategoryName,
                             fontSize = 18.sp,
                             color = Color(0xFF292B2D)
                         )
