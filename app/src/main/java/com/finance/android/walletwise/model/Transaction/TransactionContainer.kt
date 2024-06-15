@@ -1,8 +1,8 @@
 package com.finance.android.walletwise.model.Transaction
 
-import CategoryRepository
-import OfflineCategoryRepository
 import android.content.Context
+import com.finance.android.walletwise.model.Category.CategoryRepository
+import com.finance.android.walletwise.model.Category.OfflineCategoryRepository
 
 
 interface AppContainer {

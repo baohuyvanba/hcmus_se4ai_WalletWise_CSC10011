@@ -53,31 +53,40 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import com.finance.android.walletwise.WalletWiseTheme
+import com.finance.android.walletwise.model.Category.CategoryUIState
+import com.finance.android.walletwise.model.Transaction.TransactionUiState
+import com.finance.android.walletwise.ui.AppViewModelProvider
 import com.finance.android.walletwise.ui.fragment.NormalSwitch
+import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
+import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import kotlinx.coroutines.launch
 
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Composable
+//fun AddCategoryScreenPreview() {
+//    WalletWiseTheme {
+//        AddCategoryScreen(
+//            text = "Repeat this budget category",
+//            isChecked = true,
+//            onCheckedChange = {}
+//        )
+//    }
+//}
 @Composable
-fun AddCategoryScreenPreview() {
-    WalletWiseTheme {
-        AddCategoryScreen(
-            text = "Repeat this budget category",
-            isChecked = true,
-            onCheckedChange = {}
-        )
-    }
+fun ScreeneAddCategory(viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), navigateBack: () -> Unit){
+    AddCategoryScreen(categoryUIState = viewModel.categoryUiState,navigateBack=navigateBack)
 }
-
 @Composable
-fun AddCategoryScreen(text: String,
-                      isChecked: Boolean,
-                      onCheckedChange: (Boolean) -> Unit,
-                      modifier: Modifier = Modifier) {
+fun AddCategoryScreen(categoryUIState: CategoryUIState,
+                      viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      navigateBack: () -> Unit) {
     var categoryName by remember { mutableStateOf("") }
     var budget by remember { mutableStateOf("") }
     var isRepeat by remember { mutableStateOf(true) }
     var isChecked by remember { mutableStateOf(true)}
+    val coroutineScope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier
@@ -101,37 +110,26 @@ fun AddCategoryScreen(text: String,
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = categoryName,
-            onValueChange = { categoryName = it },
-            label = { Text("Enter category name") },
-            singleLine = true,
-            trailingIcon = {
-                if (categoryName.isNotEmpty()) {
-                    IconButton(onClick = { categoryName = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+        NameCategoryTextField(categoryUIState=categoryUIState,onValueChange=viewModel::updateUiState)
+
 
         Spacer(modifier = Modifier.height(16.dp))
+        BudgetTextField(categoryUIState=categoryUIState,onValueChange=viewModel::updateUiState)
 
-        OutlinedTextField(
-            value = budget,
-            onValueChange = { budget = it },
-            label = { Text("Enter budget") },
-            singleLine = true,
-            trailingIcon = {
-                if (budget.isNotEmpty()) {
-                    IconButton(onClick = { budget = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+//        OutlinedTextField(
+//            value = budget,
+//            onValueChange = { budget = it },
+//            label = { Text("Enter budget") },
+//            singleLine = true,
+//            trailingIcon = {
+//                if (budget.isNotEmpty()) {
+//                    IconButton(onClick = { budget = "" }) {
+//                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+//                    }
+//                }
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -153,17 +151,48 @@ fun AddCategoryScreen(text: String,
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = { /* Handle done action */ },
-            enabled = categoryName.isNotEmpty() && budget.isNotEmpty(),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Done")
-        }
+        NormalButton(
+            text = "Save",
+            onClick = { coroutineScope.launch {
+                viewModel.saveCategory()
+                navigateBack()
+            }},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        )
     }
 }
 
 
-
-
+@Composable
+fun NameCategoryTextField(categoryUIState: CategoryUIState,
+                         onValueChange: (CategoryUIState) -> Unit = {}) {
+    OutlinedTextField(
+        value = categoryUIState.name,
+        onValueChange = { onValueChange(categoryUIState.copy(name=it))},
+        label = { Text("Name") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+@Composable
+fun BudgetTextField(categoryUIState: CategoryUIState,
+                          onValueChange: (CategoryUIState) -> Unit = {})
+{
+    OutlinedTextField(
+        value = categoryUIState.amount,
+        onValueChange = { onValueChange(categoryUIState.copy(amount=it))},
+        label = { Text("Budget") },
+        singleLine = true,
+//        trailingIcon = {
+//            if (budget.isNotEmpty()) {
+//                IconButton(onClick = { budget = "" }) {
+//                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+//                }
+//            }
+//        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
 

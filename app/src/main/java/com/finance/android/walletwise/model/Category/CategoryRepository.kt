@@ -1,6 +1,4 @@
-import android.content.Context
-import com.finance.android.walletwise.model.Category.Category
-import com.finance.android.walletwise.model.Category.CategoryDao
+package com.finance.android.walletwise.model.Category
 import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {
