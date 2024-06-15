@@ -88,8 +88,10 @@ class WalletWiseActivity : ComponentActivity()
         super.onCreate(savedInstanceState)
         setContent {
             val navController= rememberNavController()
-
+//            ScreeneAddCategory(navigateBack = { navController.popBackStack() })
+//
             Navigation(navController = navController)
+
         }
     }
 }

@@ -1,6 +1,4 @@
-import android.content.Context
-import com.finance.android.walletwise.model.Category.Category
-import com.finance.android.walletwise.model.Category.CategoryDao
+package com.finance.android.walletwise.model.Category
 import kotlinx.coroutines.flow.Flow
 
 interface CategoryRepository {
@@ -27,10 +25,3 @@ class OfflineCategoryRepository(private val categoryDao: CategoryDao) : Category
     override suspend fun updateCategory(category: Category) = categoryDao.updateCategory(category)
 }
 
-class AppContainer(context: Context) {
-    private val categoryDao: CategoryDao = CategoryDatabase.getDatabase(context).categoryDao()
-
-    val categorysRepository: CategoryRepository by lazy {
-        OfflineCategoryRepository(categoryDao)
-    }
-}

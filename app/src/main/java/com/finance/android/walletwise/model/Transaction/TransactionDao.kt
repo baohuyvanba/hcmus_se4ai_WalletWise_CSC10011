@@ -7,13 +7,13 @@ import com.finance.android.walletwise.model.Transaction.Transaction
 
 @Dao
 interface TransactionDao {
-//    @androidx.room.Transaction
-//    @Query("SELECT * FROM transaction_table ORDER BY id DESC")
-//    fun getFlowOfExpensesWithRelation(): Flow<List<ExpenseWithRelation>>
-//
-//    @androidx.room.Transaction
-//    @Query("SELECT * FROM transaction_table WHERE id = :id")
-//    fun getExpenseWithRelationById(id: Int): Flow<ExpenseWithRelation>
+    @androidx.room.Transaction
+    @Query("SELECT * FROM transaction_table ORDER BY id DESC")
+    fun getFlowOfExpensesWithRelation(): Flow<List<ExpenseWithRelation>>
+
+    @androidx.room.Transaction
+    @Query("SELECT * FROM transaction_table WHERE id = :id")
+    fun getExpenseWithRelationById(id: Int): Flow<ExpenseWithRelation>
 
     @Query("SELECT * FROM transaction_table WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
     fun getTransactionsInRange(startDate: Long, endDate: Long): Flow<List<Transaction>>

@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 data class TransactionUiState(
     val id: Int=0,
     val amount: String="",
-    val category: String="",
+    val idCategory: Int=0,
     val type: String="",
     val date: LocalDate=LocalDate.now(),
     val time: LocalTime=LocalTime.now(),
@@ -20,7 +20,7 @@ val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 fun TransactionUiState.toTransaction():Transaction= Transaction(
     id=id,
     amount=amount.toDoubleOrNull()?:0.0,
-    category=category,
+    idCategory=idCategory,
     type=type,
     date= date,
     time= time,
@@ -30,7 +30,7 @@ fun TransactionUiState.toTransaction():Transaction= Transaction(
 fun Transaction.toTransactionUiState(actionEnabled: Boolean=false): TransactionUiState= TransactionUiState(
     id = id,
     amount = amount.toString(),
-    category=category,
+    idCategory=idCategory,
     type=type,
     date=date,
     time=time,
@@ -39,5 +39,5 @@ fun Transaction.toTransactionUiState(actionEnabled: Boolean=false): TransactionU
 )
 
 fun TransactionUiState.isValid(): Boolean {
-    return category.toString().isNotBlank()
+    return idCategory.toString().isNotBlank()
 }
