@@ -235,7 +235,7 @@ fun TabContent1(transactionUiState: TransactionUiState,
             when (selectedChipIndex) {
              
                 0 -> InputChipContent1(transactionUiState = expenseViewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
-                1 -> InputChipContent2()
+                1 -> InputChipContent2(transactionUiState = expenseViewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
             }
 
         }
@@ -295,14 +295,60 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
     }
 }
 
+
 @Composable
-fun InputChipContent2() {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Text(text = "This is content for Chip 2")
+fun InputChipContent2(transactionUiState: TransactionUiState,
+                      expenseViewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      navigateBack: () -> Unit,
+                      coroutineScope: CoroutineScope
+) {
+    var expanded by remember { mutableStateOf(false) } // Khởi tạo là false để menu không mở ban đầu
+    //  val menuItems = listOf("Item 1", "Item 2", "Item 3")
+    val selectedItem = remember { mutableStateOf("") }
+    var noteExpense by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.TopCenter)
+                .padding(top = 30.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+
+            CategoryIncomeDropdown(transactionUiState = expenseViewModel.transactionUiState, onValueChange = expenseViewModel::updateUiState)
+
+
+            datetimepicker(onValueChange=expenseViewModel::updateUiState, transactionUiState = transactionUiState)
+            //Note
+            DescriptionTextField(transactionUiState=transactionUiState,onValueChange=expenseViewModel::updateUiState)
+
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally)
+        {
+            NormalButton(
+                text = "Save",
+                onClick = { coroutineScope.launch {
+                    expenseViewModel.saveTransactionIncome()
+                    navigateBack()
+                }},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            )
+        }
     }
 }
+
 
 @Composable
 fun TabContent2() {
@@ -432,7 +478,7 @@ fun CategoryDropdown(
     }
 
     val categoryListState by categoryViewModel.expenseCategories.collectAsState()
-
+    val selectedCategoryName = categoryListState.find { it.id == transactionUiState.idCategory }?.name ?: "Select a Category"
     Column {
         Box(
             modifier = Modifier
@@ -447,7 +493,7 @@ fun CategoryDropdown(
                 )
         ) {
             Text(
-                text = transactionUiState.idCategory.toString(),
+                text = selectedCategoryName,
                 modifier = Modifier
                     .padding(12.dp)
                     .fillMaxWidth(),
@@ -464,6 +510,7 @@ fun CategoryDropdown(
                 )
             }
             DropdownMenu(
+
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
@@ -472,7 +519,10 @@ fun CategoryDropdown(
             ) {
                 categoryListState.forEach { category ->
                     DropdownMenuItem(
+
+
                         onClick = {
+
                             onValueChange(transactionUiState.copy(idCategory = category.id))
                             expanded = false
                         },
@@ -573,6 +623,69 @@ fun datetimepicker(transactionUiState: TransactionUiState, onValueChange: (Trans
             onClick = { timePickerDialog.show() }
         ) {
             Text(text = formattedTime, style = TextStyle(color = Color.Black))
+        }
+    }
+}
+
+@Composable
+fun CategoryIncomeDropdown(
+    transactionUiState: TransactionUiState,
+    onValueChange: (TransactionUiState) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val categoryList = listOf("INCOME")
+    val selectedCategoryName = if (transactionUiState.idCategory != null) "INCOME" else "Select a Category"
+
+    Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.White)
+                .border(
+                    width = 1.5.dp,
+                    color = Color(0xFFF1F1FA),
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Text(
+                text = selectedCategoryName,
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                color = Color(0xFF91919F)
+            )
+            IconButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Expand category dropdown",
+                    tint = Color(0xFF91919F)
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(Color(0xFFFCFCFC))
+            ) {
+                categoryList.forEach { category ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onValueChange(transactionUiState.copy(idCategory = 1)) // Assuming "INCOME" has id 1
+                            expanded = false
+                        },
+                        text = {
+                            Text(text = category, color = Color.Black)
+                        }
+                    )
+                }
+            }
         }
     }
 }
