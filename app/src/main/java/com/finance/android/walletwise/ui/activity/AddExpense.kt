@@ -61,6 +61,7 @@ import java.time.format.DateTimeFormatter
 fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), navigateBack: () -> Unit){
     AddExpenseSreen(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack)
 }
+
 @Composable
 fun AddExpenseSreen(transactionUiState: TransactionUiState,
                     viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
@@ -430,7 +431,7 @@ fun CategoryDropdown(
                 )
         ) {
             Text(
-                text = transactionUiState.category,
+                text = transactionUiState.idCategory.toString(),
                 modifier = Modifier
                     .padding(12.dp)
                     .fillMaxWidth(),
@@ -456,7 +457,7 @@ fun CategoryDropdown(
                 categoryOptions.forEach { category ->
                     DropdownMenuItem(
                         onClick = {
-                            onValueChange(transactionUiState.copy(category = category))
+                            onValueChange(transactionUiState.copy(idCategory = category.toInt()))
                             expanded = false
                         },
                         text = {

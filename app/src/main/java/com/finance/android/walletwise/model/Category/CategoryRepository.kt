@@ -27,10 +27,3 @@ class OfflineCategoryRepository(private val categoryDao: CategoryDao) : Category
     override suspend fun updateCategory(category: Category) = categoryDao.updateCategory(category)
 }
 
-class AppContainer(context: Context) {
-    private val categoryDao: CategoryDao = CategoryDatabase.getDatabase(context).categoryDao()
-
-    val categorysRepository: CategoryRepository by lazy {
-        OfflineCategoryRepository(categoryDao)
-    }
-}

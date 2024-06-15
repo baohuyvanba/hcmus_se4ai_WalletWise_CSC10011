@@ -251,11 +251,11 @@ fun TransactionCard(transaction: Transaction,
                             .clip(RoundedCornerShape(15.dp))
                             .size(75.dp)
                             .background(
-                                if (transaction.category.equals("Shopping")) {
+                                if (transaction.idCategory.equals("Shopping")) {
                                     Color(0xFFFCEED4)
-                                } else if (transaction.category.equals("Food")) {
+                                } else if (transaction.idCategory.equals("Food")) {
                                     Color(0xFFFDD5D7)
-                                } else if (transaction.category.equals("Entertainment")) {
+                                } else if (transaction.idCategory.equals("Entertainment")) {
                                     Color(0xFFB6E7E7)
                                 } else {
                                     Color(0xFFEEE5FF)
@@ -266,11 +266,11 @@ fun TransactionCard(transaction: Transaction,
                         Icon(
                             painter = painterResource(
                                 id =
-                                if (transaction.category.equals("Shopping")) {
+                                if (transaction.idCategory.equals("Shopping")) {
                                     R.drawable.shopping
-                                } else if (transaction.category.equals("Food")) {
+                                } else if (transaction.idCategory.equals("Food")) {
                                     R.drawable.img_11
-                                } else if (transaction.category.equals("Entertainment")) {
+                                } else if (transaction.idCategory.equals("Entertainment")) {
                                     R.drawable.entertain
                                 } else {
                                     R.drawable.otherss
@@ -278,11 +278,11 @@ fun TransactionCard(transaction: Transaction,
                             ), contentDescription = "Grocery",
                             modifier = Modifier.size(40.dp),
                             tint =
-                            if (transaction.category.equals("Shopping")) {
+                            if (transaction.idCategory.equals("Shopping")) {
                                 Color(0xFFFCAC12)
-                            } else if (transaction.category.equals("Food")) {
+                            } else if (transaction.idCategory.equals("Food")) {
                                 Color(0xFFFD3C4A)
-                            } else if (transaction.category.equals("Entertainment")) {
+                            } else if (transaction.idCategory.equals("Entertainment")) {
                                 Color(0xFF11808F)
                             } else {
                                 Color(0xFF7F3DFF)
@@ -292,7 +292,7 @@ fun TransactionCard(transaction: Transaction,
                     Spacer(modifier = Modifier.width(5.dp))
                     Column(modifier = Modifier.padding(10.dp)) {
                         Text(
-                            text = transaction.category,
+                            text = transaction.idCategory.toString(),
                             fontSize = 18.sp,
                             color = Color(0xFF292B2D)
                         )
@@ -340,9 +340,9 @@ fun TransactionCard(transaction: Transaction,
                             .clip(RoundedCornerShape(15.dp))
                             .size(75.dp)
                             .background(
-                                if (transaction.category.equals("Salary")) {
+                                if (transaction.idCategory.equals("Salary")) {
                                     Color(0xFFCFFAEA)
-                                } else if (transaction.category.equals("Gifts")) {
+                                } else if (transaction.idCategory.equals("Gifts")) {
                                     Color(0xFFBDDCFF)
                                 } else {
                                     Color(0xFFEEE5FF)
@@ -353,9 +353,9 @@ fun TransactionCard(transaction: Transaction,
                         Icon(
                             painter = painterResource(
                                 id =
-                                if (transaction.category.equals("Salary")) {
+                                if (transaction.idCategory.equals("Salary")) {
                                     R.drawable.salary
-                                } else if (transaction.category.equals("Gifts")) {
+                                } else if (transaction.idCategory.equals("Gifts")) {
                                     R.drawable.gifts
                                 } else {
                                     R.drawable.otherss
@@ -364,9 +364,9 @@ fun TransactionCard(transaction: Transaction,
                             ), contentDescription = "Grocery",
                             modifier = Modifier.size(40.dp),
                             tint =
-                            if (transaction.category.equals("Salary")) {
+                            if (transaction.idCategory.equals("Salary")) {
                                 Color(0xFF00A86B)
-                            } else if (transaction.category.equals("Gifts")) {
+                            } else if (transaction.idCategory.equals("Gifts")) {
                                 Color(0xFF0077FF)
                             } else {
                                 Color(0xFF7F3DFF)
@@ -376,7 +376,7 @@ fun TransactionCard(transaction: Transaction,
                     Spacer(modifier = Modifier.width(5.dp))
                     Column(modifier = Modifier.padding(10.dp)) {
                         Text(
-                            text = transaction.category,
+                            text = transaction.idCategory.toString(),
                             fontSize = 18.sp,
                             color = Color(0xFF292B2D)
                         )
