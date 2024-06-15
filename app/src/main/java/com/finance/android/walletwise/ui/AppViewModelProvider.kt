@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.WalletWiseApplicatiom
+import com.finance.android.walletwise.ui.viewmodel.EditTransactionViewModel
 import com.finance.android.walletwise.ui.viewmodel.TransactionsScreenViewModel
 
 object AppViewModelProvider{
@@ -18,6 +19,13 @@ object AppViewModelProvider{
         }
         initializer {
             TransactionsScreenViewModel(
+                transacrionApplicatiom().container.transactionRepository
+            )
+        }
+
+        initializer {
+            EditTransactionViewModel(
+                this.createSavedStateHandle(),
                 transacrionApplicatiom().container.transactionRepository
             )
         }

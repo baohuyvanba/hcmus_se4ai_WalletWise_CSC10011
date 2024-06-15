@@ -56,21 +56,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAddExpenseScreen() {
-    val sampleUiState = TransactionUiState(
-        amount = "0.0",
-        category = "Food",
-        date = LocalDate.now(),
-        time = LocalTime.now(),
-        description = "1100"
-    )
-    AddExpenseSreen(
-        transactionUiState = sampleUiState,
-        navigateBack = {}
-    )
-}
+
 @Composable
 fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), navigateBack: () -> Unit){
     AddExpenseSreen(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack)
@@ -119,7 +105,6 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
                 // Close Button
                 IconButton(
                     onClick = { coroutineScope.launch {
-                        viewModel.saveTransactionIncome()
                         navigateBack()
                     }},
                     modifier = Modifier
@@ -174,7 +159,7 @@ fun TabContent1(transactionUiState: TransactionUiState,
                 navigateBack: () -> Unit,
                 coroutineScope: CoroutineScope
                 ) {
-    var amount by remember { mutableStateOf("") }
+
     var selectedChipIndex by remember { mutableStateOf(0) }
     val chipTitles = listOf("EXPENSE", "INCOME")
 

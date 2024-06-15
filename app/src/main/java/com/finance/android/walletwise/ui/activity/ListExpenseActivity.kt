@@ -2,6 +2,7 @@ package com.finance.android.walletwise.ui.activity
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.Icon
@@ -26,8 +29,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,19 +70,6 @@ import java.time.format.DateTimeFormatter
 //        }
 //    )
 //}
-object TransactionEditDestination : WalletWiseDestination {
-    override val route = "transaction_edit"
-
-    override val icon: ImageVector = Icons.Default.Home
-    const val transactionIdArg = "transactionId"
-    val routeWithArgs = "$route/{$transactionIdArg}"
-}
-object IncomeTransactionEditDestination : WalletWiseDestination {
-    override val route = "transaction_editincome"
-    override val icon: ImageVector = Icons.Default.Home
-    const val transactionIdArg = "transactionId"
-    val routeWithArgs = "$route/{$transactionIdArg}"
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,43 +81,115 @@ fun ListExpenseScreen(viewModel: TransactionsScreenViewModel = androidx.lifecycl
     val transactionsScreenUiStateMonth by viewModel.transactionsScreenUiStateMonth.collectAsState()
     val transactionsScreenUiStateYear by viewModel.transactionsScreenUiStateYear.collectAsState()
 
-    Scaffold(
-        //Fix
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "View Expenses", fontWeight = FontWeight.Bold) },
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                contentColor = Color.Black
-            ) {
-                IconButton(onClick = { /* Handle home click */ }) {
-                    Icon(imageVector = Icons.Default.Home, contentDescription = "Home")
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(
+            Color(0xFFFFF7F2)
+        )){
+        Column() {
+            var selectedCategory by remember { mutableStateOf("All") }
+            Column {
+                timedropdown(selectedCategory = selectedCategory) { category ->
+                    selectedCategory = category
                 }
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            Text(text = selectedCategory, color = Color(0xFF0D0E0F), fontSize = 18.sp, fontWeight =FontWeight.SemiBold,
+                modifier = Modifier.padding(20.dp))
+            if (transactionScreenUiState.transactionList.isEmpty()) {
+                Text(
+                    text = "No Items",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(15.dp)
+                )
+            } else {
+                ExpenseList(
+                    transactionList =
+                    if(selectedCategory.equals("Today")){
+                        transactionsScreenUiStateToday.transactionList
+                    }
+                    else if(selectedCategory.equals("Week")){
+                        transactionsScreenUiStateWeek.transactionList
+                    }
+                    else if(selectedCategory.equals("Month")){
+                        transactionsScreenUiStateMonth.transactionListt
+                    }
+                    else if(selectedCategory.equals("Year")){
+                        transactionsScreenUiStateYear.transactionList
+                    }
+                    else{
+                        transactionScreenUiState.transactionList
+                    },
+                    navController = navController)
+            }
+        }
+    }
+
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun timedropdown(selectedCategory: String, onCategorySelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Column {
+        Box(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(0.35f)
+                .border(
+                    width = 2.5.dp,
+                    color = Color(0xFFF1F1FA),
+                    shape = RoundedCornerShape(25.dp)
+                )
+                .clip(RoundedCornerShape(25.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.img_9),
+                    contentDescription = "DropDown",
+                    tint = Color(0xFF7F3DFF)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = selectedCategory,
+                    color = Color(0xFF212325)
+                )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { /* Handle add click */ }) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Setting")
+                Icon(
+                    painter = painterResource(id =  R.drawable.img_9 ),
+                    contentDescription = "DropDown",
+                    tint = Color(0xFF7F3DFF)
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color(0xFFFCFCFC))
+            ) {
+                timeitems.forEach { category ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onCategorySelected(category)
+                            expanded = false
+                        },
+                        text = { Text(text = category, color = Color.Black) }
+                    )
                 }
             }
         }
-    ) { innerPadding ->
-        if (transactionScreenUiState.transactionList.isEmpty()) {
-            Text(
-                text = "No Items",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(15.dp)
-            )
-        } else
-        ExpenseList(transactionList = transactionsScreenUiStateWeek.transactionList,
-            navController = navController,
-            modifier = Modifier.padding(innerPadding))
     }
 }
-
 @Composable
-fun ExpenseList(transactionList: List<Transaction>,navController: NavController,modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier) {
+fun ExpenseList(transactionList: List<Transaction>,navController: NavController) {
+    LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
         items(items = transactionList, key = { it.id }) { item ->
             TransactionCard(transaction=item,navController = navController)
         }
@@ -348,3 +412,7 @@ fun TransactionCard(transaction: Transaction,
         }
     }
 }
+
+
+
+val timeitems = listOf("All", "Today", "Week", "Month", "Year")
