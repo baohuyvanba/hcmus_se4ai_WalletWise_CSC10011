@@ -108,6 +108,7 @@ fun Navigation(navController: NavHostController){
                 bottommenu(items = listOf(
                     BottomMenuContent("Home","Home",R.drawable.ic_circle_filled),
                     BottomMenuContent("Transactions","Transactions",R.drawable.otherss),
+                    BottomMenuContent("Category","Category",R.drawable.entertain),
                 ), navController = navController, onItemClick = {
                     navController.navigate(it.route)
                 }, bottomBarState = true)
@@ -180,6 +181,11 @@ fun Navigation(navController: NavHostController){
                 }){
                 ListExpenseScreen(navController = navController)
             }
+
+        }
+        composable("Category"){
+
+            ScreeneAddCategory(navigateBack = { navController.popBackStack() })
 
         }
 
