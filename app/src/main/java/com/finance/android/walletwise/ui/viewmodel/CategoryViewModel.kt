@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.finance.android.walletwise.model.Category.Category
 import com.finance.android.walletwise.model.Category.CategoryRepository
 import com.finance.android.walletwise.model.Category.CategoryUIState
@@ -13,50 +14,56 @@ import com.finance.android.walletwise.model.Transaction.Transaction
 import com.finance.android.walletwise.model.Transaction.isValid
 import com.finance.android.walletwise.model.Transaction.toTransaction
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 
-class CategoryViewModel(private val categoryRepository: CategoryRepository): ViewModel() {
+class CategoryViewModel(private val categoryRepository: CategoryRepository) : ViewModel() {
 
-//    private val _selectedCategory = MutableStateFlow<Category?>(null)
-//    val selectedCategory = _selectedCategory
-//    private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
-//    val allCategories = _allCategories
+    private val _categoryUiState = mutableStateOf(CategoryUIState())
+    val categoryUiState get() = _categoryUiState.value
 
-    var categoryUiState by mutableStateOf(CategoryUIState())
+    private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
+    val allCategories: StateFlow<List<Category>> = _allCategories.asStateFlow()
 
-        private set
-
-    fun updateUiState(newCategoryUIState: CategoryUIState){
-        categoryUiState= newCategoryUIState.copy(actionEnabled = newCategoryUIState.isValid())
+    fun updateUiState(newCategoryUIState: CategoryUIState) {
+        _categoryUiState.value = newCategoryUIState.copy(actionEnabled = newCategoryUIState.isValid())
     }
 
-    fun getCategoryById(id: Int) {
-        if(categoryUiState.isValid()){
-            categoryUiState=categoryUiState.copy()
-            categoryRepository.getCategoryStream(id)
-        }
-    }
     fun getAllCategories() {
-        if(categoryUiState.isValid()){
-            categoryUiState=categoryUiState.copy()
-            categoryRepository.getCategoriesStream()
+        viewModelScope.launch {
+            val categories = categoryRepository.getCategoriesStream().firstOrNull() ?: emptyList()
+            _allCategories.value = categories
         }
     }
 
-    suspend fun saveCategory(){
-        if(categoryUiState.isValid()){
-            categoryUiState=categoryUiState.copy()
+    suspend fun saveCategory() {
+        if (categoryUiState.isValid()) {
             categoryRepository.insertCategory(categoryUiState.toCategory())
+            getAllCategories() // refresh the list after saving
         }
     }
+
     fun updateNameCategory(category: String) {
-        categoryUiState = categoryUiState.copy(name = category)
+        _categoryUiState.value = categoryUiState.copy(name = category)
     }
+
     fun updateAmount(amount: Int) {
-        categoryUiState = categoryUiState.copy(amount = amount.toString())
+        _categoryUiState.value = categoryUiState.copy(amount = amount.toString())
     }
 
-
-
-
+    // For getting categories of a specific type (similar to your transaction implementation)
+    val expenseCategories: StateFlow<List<Category>> =
+        allCategories
+            //.map { categories -> categories.filter { it. == "Expense" } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 }

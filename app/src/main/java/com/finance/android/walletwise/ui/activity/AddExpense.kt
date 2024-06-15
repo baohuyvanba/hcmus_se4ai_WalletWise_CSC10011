@@ -25,6 +25,8 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,10 +46,13 @@ import com.finance.android.walletwise.ui.fragment.NormalTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finance.android.walletwise.R
+import com.finance.android.walletwise.model.Category.Category
+import com.finance.android.walletwise.model.Category.CategoryUIState
 import com.finance.android.walletwise.ui.fragment.NormalButton
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.model.Transaction.TransactionUiState
 import com.finance.android.walletwise.ui.AppViewModelProvider
+import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
 
 
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +69,8 @@ fun ScreeneAddExpense(viewModel: ExpenseViewModel = androidx.lifecycle.viewmodel
 
 @Composable
 fun AddExpenseSreen(transactionUiState: TransactionUiState,
-                    viewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                    expenseviewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+
                     navigateBack: () -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
@@ -145,7 +151,7 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
 
             // Content
             when (selectedTabIndex) {
-                0 -> TabContent1(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
+                0 -> TabContent1(transactionUiState = expenseviewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
                 1 -> TabContent2()
                 2 -> TabContent3()
             }
@@ -156,7 +162,8 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabContent1(transactionUiState: TransactionUiState,
-                viewModel: ExpenseViewModel= viewModel(factory= AppViewModelProvider.Factory),
+                expenseViewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+
                 navigateBack: () -> Unit,
                 coroutineScope: CoroutineScope
                 ) {
@@ -179,7 +186,7 @@ fun TabContent1(transactionUiState: TransactionUiState,
             EditableAmountField(
                 value = transactionUiState.amount,
                 transactionUiState = transactionUiState,
-                onValueChange=viewModel::updateUiState
+                onValueChange=expenseViewModel::updateUiState
 
             )
             Row(
@@ -226,7 +233,8 @@ fun TabContent1(transactionUiState: TransactionUiState,
 
             // Content
             when (selectedChipIndex) {
-                0 -> InputChipContent1(transactionUiState = viewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
+             
+                0 -> InputChipContent1(transactionUiState = expenseViewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
                 1 -> InputChipContent2()
             }
 
@@ -236,7 +244,8 @@ fun TabContent1(transactionUiState: TransactionUiState,
 
 @Composable
 fun InputChipContent1(transactionUiState: TransactionUiState,
-                      viewModel: ExpenseViewModel= viewModel(factory= AppViewModelProvider.Factory),
+                      expenseViewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                      categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
                       navigateBack: () -> Unit,
                       coroutineScope: CoroutineScope
 ) {
@@ -258,12 +267,12 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
             horizontalAlignment = Alignment.Start
         ) {
 
-            CategoryDropdown(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
+            CategoryDropdown(transactionUiState = expenseViewModel.transactionUiState, categoryUiState = categoryViewModel.categoryUiState, onValueChange = expenseViewModel::updateUiState)
 
 
-            datetimepicker(onValueChange=viewModel::updateUiState, transactionUiState = transactionUiState)
+            datetimepicker(onValueChange=expenseViewModel::updateUiState, transactionUiState = transactionUiState)
             //Note
-            DescriptionTextField(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
+            DescriptionTextField(transactionUiState=transactionUiState,onValueChange=expenseViewModel::updateUiState)
 
         }
         Column(
@@ -275,7 +284,7 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
             NormalButton(
                 text = "Save",
                 onClick = { coroutineScope.launch {
-                    viewModel.saveTransactionExpense()
+                    expenseViewModel.saveTransactionExpense()
                     navigateBack()
                 }},
                 modifier = Modifier
@@ -412,10 +421,17 @@ val categoryOptions = listOf("Shopping", "Food", "Entertainment", "Others")
 @Composable
 fun CategoryDropdown(
     transactionUiState: TransactionUiState,
+    categoryUiState: CategoryUIState,
+    categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
     onValueChange: (TransactionUiState) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val categoryOptions = listOf("Category 1", "Category 2", "Category 3") // Define your categories here
+
+    LaunchedEffect(Unit) {
+        categoryViewModel.getAllCategories()
+    }
+
+    val categoryListState by categoryViewModel.expenseCategories.collectAsState()
 
     Column {
         Box(
@@ -454,14 +470,14 @@ fun CategoryDropdown(
                     .fillMaxWidth(0.9f)
                     .background(Color(0xFFFCFCFC))
             ) {
-                categoryOptions.forEach { category ->
+                categoryListState.forEach { category ->
                     DropdownMenuItem(
                         onClick = {
-                            onValueChange(transactionUiState.copy(idCategory = category.toInt()))
+                            onValueChange(transactionUiState.copy(idCategory = category.id))
                             expanded = false
                         },
                         text = {
-                            Text(text = category, color = Color.Black)
+                            Text(text = category.name, color = Color.Black)
                         }
                     )
                 }
