@@ -165,7 +165,7 @@ fun EditChipExpense(transactionUiState: TransactionUiState,
             horizontalAlignment = Alignment.Start
         ) {
 
-            CategoryDropdown(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
+//            CategoryDropdown(transactionUiState=transactionUiState,onValueChange=viewModel::updateUiState)
 
 
             datetimepicker(onValueChange=viewModel::updateUiState, transactionUiState = transactionUiState)

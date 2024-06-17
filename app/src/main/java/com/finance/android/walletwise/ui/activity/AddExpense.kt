@@ -461,7 +461,7 @@ fun EditableAmountField(
     )
 }
 
-val categoryOptions = listOf("Shopping", "Food", "Entertainment", "Others")
+val categoryOptions = listOf("INCOME","Shopping", "Food", "Entertainment", "Others")
 
 
 @Composable

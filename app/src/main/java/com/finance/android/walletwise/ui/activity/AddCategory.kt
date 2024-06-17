@@ -110,11 +110,11 @@ fun AddCategoryScreen(categoryUIState: CategoryUIState,
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        NameCategoryTextField(categoryUIState=categoryUIState,onValueChange=viewModel::updateUiState)
+        NameCategoryTextField(categoryUIState=viewModel.categoryUiState,onValueChange=viewModel::updateUiState)
 
 
         Spacer(modifier = Modifier.height(16.dp))
-        BudgetTextField(categoryUIState=categoryUIState,onValueChange=viewModel::updateUiState)
+        BudgetTextField(categoryUIState=viewModel.categoryUiState,onValueChange=viewModel::updateUiState)
 
 //        OutlinedTextField(
 //            value = budget,

@@ -63,6 +63,8 @@ import androidx.navigation.compose.composable
 
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.finance.android.walletwise.model.Category.CategoryDao
+import com.finance.android.walletwise.model.Category.OfflineCategoryRepository
 import com.finance.android.walletwise.model.Transaction.Transaction
 import com.finance.android.walletwise.ui.AppViewModelProvider
 

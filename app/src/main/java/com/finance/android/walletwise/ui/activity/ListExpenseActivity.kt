@@ -1,6 +1,7 @@
 package com.finance.android.walletwise.ui.activity
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -193,7 +195,7 @@ fun timedropdown(selectedCategory: String, onCategorySelected: (String) -> Unit)
 fun ExpenseList(transactionList: List<Transaction>,navController: NavController) {
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
         items(items = transactionList, key = { it.id }) { item ->
-//            TransactionCard(transaction=item,navController = navController)
+            TransactionCard(transaction=item,navController = navController)
         }
     }
 }
@@ -211,8 +213,18 @@ fun TransactionCard(transaction: Transaction,
                     categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
                     navController: NavController
 ) {
+    LaunchedEffect(Unit) {
+        categoryViewModel.getAllCategories()
+    }
+
     val categoryListState by categoryViewModel.expenseCategories.collectAsState()
-    val selectedCategoryName = categoryListState.find { it.id == transaction.idCategory }?.name ?: "Select a Category"
+    // Debug log to check category list state
+    Log.d("TransactionCard", "Category List: ${categoryListState.joinToString { it.name }}")
+    val selectedCategory = categoryListState.find { it.id == transaction.idCategory }
+    // Debug log to check selected category
+    Log.d("TransactionCard", "Selected Category: $selectedCategory")
+    val selectedCategoryName = selectedCategory?.name ?: "Select a Category"
+
 
 
     val formattedDate by remember {

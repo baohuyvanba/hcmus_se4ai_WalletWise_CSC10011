@@ -29,6 +29,7 @@ data class Transaction(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "amount") val amount: Double,
     @ColumnInfo(name = "category_id") val idCategory: Int,
+//    @ColumnInfo(name = "category_name") val nameCategory: String,
     @ColumnInfo(name = "type") val type: String, // "income" or "expense"
     @ColumnInfo(name = "date") val date: LocalDate, // Unix timestamp in milliseconds
     @ColumnInfo(name = "time") val time: LocalTime,
