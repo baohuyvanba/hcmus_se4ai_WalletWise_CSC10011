@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -32,65 +33,126 @@ import com.finance.android.walletwise.R
 import com.finance.android.walletwise.ui.viewmodel.ChatViewModel
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.commonmark.node.*
+import org.commonmark.parser.Parser
+
+fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
+    val parser = Parser.builder().build()
+    val document = parser.parse(markdown)
+    val builder = AnnotatedString.Builder()
+
+    document.accept(object : AbstractVisitor() {
+        override fun visit(text: Text) {
+            builder.append(text.literal)
+        }
+
+        override fun visit(strongEmphasis: StrongEmphasis) {
+            val start = builder.length
+            visitChildren(strongEmphasis)
+            val end = builder.length
+            builder.addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
+        }
+
+        override fun visit(emphasis: Emphasis) {
+            val start = builder.length
+            visitChildren(emphasis)
+            val end = builder.length
+            builder.addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
+        }
+
+        override fun visit(code: Code) {
+            val start = builder.length
+            builder.append(code.literal)
+            val end = builder.length
+            builder.addStyle(SpanStyle(fontFamily = FontFamily.Monospace), start, end)
+        }
+
+        // Add other visitors as needed (e.g., Emphasis, Code, etc.)
+    })
+
+    return builder.toAnnotatedString()
+}
+
 @Preview
 @Composable
 fun ChatScreen() {
+
     val viewModel: ChatViewModel = viewModel()
     val messages by viewModel.messages.observeAsState(listOf())
     var input by remember { mutableStateOf(TextFieldValue("")) }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White)) {
-        ChatBotTopAppBar(title = "Hello")
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp),
-            reverseLayout = true,
-        ) {
-            items(messages.reversed()) { message ->
-                MessageItem(message)
-            }
-        }
-
-        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = input,
-                onValueChange =  {input = it },
-                label = { Text("Message Chatbot") },
+    Scaffold(
+        topBar = {
+            ChatBotTopAppBar(title = "Hello")
+        },
+        content = { paddingValues ->
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-                keyboardActions = KeyboardActions(onSend = {
-                    if (input.text.isNotEmpty()) {
-                        viewModel.sendMessage(input.text)
-                        input = TextFieldValue("")
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(paddingValues)  // Sử dụng paddingValues để đảm bảo nội dung không bị che khuất
+                    .imePadding()
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp),
+                    reverseLayout = true,
+                ) {
+                    items(messages.reversed()) { message ->
+                        MessageItem(message)
                     }
-                })
-            )
-            IconButton(onClick = {
-                if (input.text.isNotEmpty()) {
-                    viewModel.sendMessage(input.text)
-                    input = TextFieldValue("")
                 }
-            }) {
-                Icon(Icons.Default.Send, contentDescription = "Send")
+
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        label = { Text("Message Chatbot") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 0.dp),
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = {
+                            if (input.text.isNotEmpty()) {
+                                viewModel.sendMessage(input.text)
+                                input = TextFieldValue("")
+                            }
+                        })
+                    )
+                    IconButton(onClick = {
+                        if (input.text.isNotEmpty()) {
+                            viewModel.sendMessage(input.text)
+                            input = TextFieldValue("")
+                        }
+                    }) {
+                        Icon(Icons.Default.Send, contentDescription = "Send")
+                    }
+                }
+
+                // Remind
+                Text(
+                    text = stringResource(id = R.string.chatbot_warning),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp)
+                )
             }
         }
-        // Remind
-        Text(
-            text = stringResource(id = R.string.chatbot_warning),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            color = Color.Black,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp)
-        )
-    }
+    )
 }
 
 @Composable
@@ -108,19 +170,23 @@ fun MessageItem(message: Message) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .background(backgroundColor, shape = CircleShape)
-                .padding(12.dp)
+                .background(backgroundColor, shape = RoundedCornerShape(30.dp))
+                .padding(10.dp)
         ) {
             if (!message.isUser) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_chat_finance),
                     contentDescription = "Assistant",
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(20.dp)
                         .clip(CircleShape)
                 )
             }
-            Text(message.text, fontSize = 16.sp)
+//            Text(message.text.trim(), fontSize = 14.sp)
+            Text(
+                text = parseMarkdownToAnnotatedString(message.text),
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
+            )
         }
     }
 }

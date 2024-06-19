@@ -67,8 +67,13 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-analytics")
+    //AI
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
     implementation(libs.androidx.runtime.livedata)
+    //Markdown
+    implementation("org.commonmark:commonmark:0.18.2")
+    implementation("androidx.compose.ui:ui:1.1.0") // Adjust the version to match your Compose setup
+    implementation("androidx.compose.material3:material3:1.0.0-alpha01") // Adjust the version to match your Compose setup
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -77,5 +82,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 
 }
