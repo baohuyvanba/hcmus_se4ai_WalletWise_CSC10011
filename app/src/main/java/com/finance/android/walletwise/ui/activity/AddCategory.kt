@@ -59,6 +59,7 @@ import com.finance.android.walletwise.ui.AppViewModelProvider
 import com.finance.android.walletwise.ui.fragment.NormalSwitch
 import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
+import com.finance.android.walletwise.util.categoryIconsList
 import kotlinx.coroutines.launch
 
 
@@ -86,6 +87,7 @@ fun AddCategoryScreen(categoryUIState: CategoryUIState,
     var isRepeat by remember { mutableStateOf(true) }
     var isChecked by remember { mutableStateOf(true)}
     val coroutineScope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
 
     Column(
@@ -99,14 +101,24 @@ fun AddCategoryScreen(categoryUIState: CategoryUIState,
         = 8.dp))
 
         IconButton(
-            onClick = { /* Handle icon selection */ },
+            onClick = { showBottomSheet = true },
             modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(Color.Gray.copy(alpha = 0.2f))
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Icon", tint = Color.Gray)
+                .padding(top = 8.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = CircleShape
+                ),
+        )
+        {
+            Image(
+                painter = painterResource(
+                    id = categoryIconsList[categoryUIState.icon]
+                        ?: R.drawable.ic_category
+                ),
+                contentDescription = "Category Icon: $categoryUIState.icon",
+            )
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
