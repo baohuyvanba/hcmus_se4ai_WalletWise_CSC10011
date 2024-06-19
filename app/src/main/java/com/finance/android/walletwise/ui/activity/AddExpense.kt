@@ -7,6 +7,8 @@ import androidx.compose.foundation.border
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
@@ -19,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -29,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,6 +45,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.finance.android.walletwise.ui.fragment.NormalTextField
 import androidx.compose.ui.unit.dp
@@ -51,8 +57,11 @@ import com.finance.android.walletwise.model.Category.CategoryUIState
 import com.finance.android.walletwise.ui.fragment.NormalButton
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
 import com.finance.android.walletwise.model.Transaction.TransactionUiState
+import com.finance.android.walletwise.model.Transaction.toTransaction
 import com.finance.android.walletwise.ui.AppViewModelProvider
 import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
+import com.finance.android.walletwise.ui.viewmodel.ChatViewModel
+import com.finance.android.walletwise.ui.viewmodel.TextExtractionViewModel
 
 
 import kotlinx.coroutines.CoroutineScope
@@ -153,7 +162,7 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
             when (selectedTabIndex) {
                 0 -> TabContent1(transactionUiState = expenseviewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
                 1 -> TabContent2()
-                2 -> TabContent3()
+                2 -> TabContent3(transactionUiState = expenseviewModel.transactionUiState,navigateBack=navigateBack, coroutineScope = coroutineScope)
             }
         }
     }
@@ -394,8 +403,15 @@ fun TabContent2() {
 }
 
 @Composable
-fun TabContent3() {
-    var message by remember { mutableStateOf("") }
+fun TabContent3(transactionUiState: TransactionUiState,
+                expenseViewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+                navigateBack: () -> Unit,
+                coroutineScope: CoroutineScope) {
+    val viewModel: TextExtractionViewModel = viewModel()
+    val messages by viewModel.messages.observeAsState(listOf())
+    var input by remember { mutableStateOf(TextFieldValue("")) }
+
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -423,17 +439,32 @@ fun TabContent3() {
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            NormalTextField(
-                value = message,
-                onValueChange = { message = it },
-                label = "Message",
+            OutlinedTextField(
+                value = input,
+                onValueChange = { input = it },
+                label = { org.commonmark.node.Text("Message") },
                 modifier = Modifier
-                    .padding(bottom = 20.dp)
-                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(end = 0.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = {
+                    if (input.text.isNotEmpty()) {
+                        viewModel.extractText(input.text)
+                        input = TextFieldValue("")
+                    }
+                })
             )
             NormalButton(
                 text = "Send",
-                onClick = { /* TODO */ },
+                onClick = {  if (input.text.isNotEmpty()) {
+                    viewModel.extractText(input.text)
+                    input = TextFieldValue("")
+                    transactionUiState.copy(amount = viewModel.amountExtracted, date = viewModel.dateExtracted, description = viewModel.noteExtracted)
+                    coroutineScope.launch {
+                        expenseViewModel.saveTransactionExpense()
+                        navigateBack
+                    }
+                } },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
