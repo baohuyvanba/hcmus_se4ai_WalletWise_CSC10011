@@ -69,6 +69,7 @@ import com.finance.android.walletwise.model.Transaction.Transaction
 import com.finance.android.walletwise.ui.AppViewModelProvider
 
 import com.finance.android.walletwise.ui.activity.*
+import com.finance.android.walletwise.ui.screen.CategoryListScreen
 
 //Import UI file
 import com.finance.android.walletwise.ui.theme.*
@@ -187,9 +188,15 @@ fun Navigation(navController: NavHostController){
         }
         composable("Category"){
 
+            CategoryListScreen(navigateToAddCategory = { navController.navigate("AddCategory") })
+
+        }
+        composable("AddCategory"){
+
             ScreeneAddCategory(navigateBack = { navController.popBackStack() })
 
         }
+
 
         composable("AddScreen"){
             ScreeneAddExpense(navigateBack = { navController.popBackStack() })

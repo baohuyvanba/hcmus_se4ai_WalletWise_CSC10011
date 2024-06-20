@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -91,6 +95,7 @@ fun AddExpenseSreen(transactionUiState: TransactionUiState,
         modifier = Modifier
             .fillMaxSize()
             .background(colorResource(id = R.color.md_theme_background))
+            .imePadding()
     ) {
 
         // First Column at the top
@@ -235,7 +240,7 @@ fun TabContent1(transactionUiState: TransactionUiState,
                                     R.color.md_theme_background
                                 )
                             )
-                            .size(180.dp, 40.dp),  // Tùy chỉnh kích thước
+                            .size(200.dp, 40.dp),  // Tùy chỉnh kích thước
                     )
                 }
             }
@@ -298,7 +303,9 @@ fun InputChipContent1(transactionUiState: TransactionUiState,
                 }},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                backgroundColor = colorResource(R.color.md_theme_primary),
+                contentColor = colorResource(R.color.md_theme_onPrimary)
             )
         }
     }
@@ -352,7 +359,9 @@ fun InputChipContent2(transactionUiState: TransactionUiState,
                 }},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                backgroundColor = colorResource(R.color.md_theme_primary),
+                contentColor = colorResource(R.color.md_theme_onPrimary)
             )
         }
     }
@@ -510,69 +519,49 @@ fun CategoryDropdown(
 
     val categoryListState by categoryViewModel.expenseCategories.collectAsState()
     val selectedCategoryName = categoryListState.find { it.id == transactionUiState.idCategory }?.name ?: "Select a Category"
+
     Column {
-        Box(
+        OutlinedTextField(
+            value = selectedCategoryName,
+            onValueChange = {},
+            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.White)
-                .border(
-                    width = 1.5.dp,
-                    color = Color(0xFFF1F1FA),
-                    shape = RoundedCornerShape(10.dp)
-                )
-        ) {
-            Text(
-                text = selectedCategoryName,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-                color = Color(0xFF91919F)
-            )
-            IconButton(
-                onClick = { expanded = !expanded },
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
+                .padding(top = 10.dp),
+            trailingIcon = {
                 Icon(
+                    modifier = Modifier
+                        .clickable { expanded = !expanded},
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Expand category dropdown",
                     tint = Color(0xFF91919F)
                 )
-            }
-            DropdownMenu(
+            },
+            singleLine = true,
+            readOnly = true
+        )
 
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(Color(0xFFFCFCFC))
-            ) {
-                categoryListState.forEach { category ->
-                    DropdownMenuItem(
-
-
-                        onClick = {
-
-                            onValueChange(transactionUiState.copy(idCategory = category.id))
-                            expanded = false
-                        },
-                        text = {
-                            Text(text = category.name, color = Color.Black)
-                        }
-                    )
-                }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorResource(R.color.md_theme_background))
+        ) {
+            categoryListState.forEach { category ->
+                DropdownMenuItem(
+                    onClick = {
+                        onValueChange(transactionUiState.copy(idCategory = category.id))
+                        expanded = false
+                    },
+                    text = {
+                        Text(text = category.name, color = colorResource(R.color.md_theme_onBackground))
+                    }
+                )
             }
         }
     }
 }
-
-
-
-//fun DropdownMenuItem(onClick: () -> Unit, interactionSource: () -> Unit) {
-//
-//}
-
 
 @Composable
 fun DescriptionTextField(transactionUiState: TransactionUiState,
@@ -632,28 +621,36 @@ fun datetimepicker(transactionUiState: TransactionUiState, onValueChange: (Trans
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(top = 30.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            colors = ButtonDefaults.buttonColors(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF438CED),
+                contentColor = colorResource(R.color.md_theme_onPrimary)
+            ),
+            shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomEnd = 5.dp, bottomStart = 5.dp),
             modifier = Modifier
                 .weight(1f)
-                .clip(RoundedCornerShape(10.dp)),
+                .clip(RoundedCornerShape(0.dp)),
             onClick = { datePickerDialog.show() }
         ) {
-            Text(text = formattedDate, style = TextStyle(color = Color.Black))
+            Text(text = formattedDate)
         }
         Spacer(modifier = Modifier.width(10.dp))
         Button(
-            colors = ButtonDefaults.buttonColors(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF438CED),
+                contentColor = colorResource(R.color.md_theme_onPrimary)
+            ),
+            shape = RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp, bottomEnd = 5.dp, bottomStart = 5.dp),
             modifier = Modifier
                 .weight(1f)
-                .clip(RoundedCornerShape(10.dp)),
+                .clip(RoundedCornerShape(0.dp)),
             onClick = { timePickerDialog.show() }
         ) {
-            Text(text = formattedTime, style = TextStyle(color = Color.Black))
+            Text(text = formattedTime)
         }
     }
 }
@@ -669,36 +666,56 @@ fun CategoryIncomeDropdown(
     val selectedCategoryName = if (transactionUiState.idCategory != null) "INCOME" else "Select a Category"
 
     Column {
-        Box(
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp)
+//                .clip(RoundedCornerShape(10.dp))
+//                .background(Color.White)
+//                .border(
+//                    width = 1.5.dp,
+//                    color = Color(0xFFF1F1FA),
+//                    shape = RoundedCornerShape(10.dp)
+//                )
+//        ) {
+//            Text(
+//                text = selectedCategoryName,
+//                modifier = Modifier
+//                    .padding(12.dp)
+//                    .fillMaxWidth(),
+//                color = Color(0xFF91919F)
+//            )
+//            IconButton(
+//                onClick = { expanded = !expanded },
+//                modifier = Modifier.align(Alignment.CenterEnd)
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.ArrowDropDown,
+//                    contentDescription = "Expand category dropdown",
+//                    tint = Color(0xFF91919F)
+//                )
+//            }
+        OutlinedTextField(
+            value = selectedCategoryName,
+            onValueChange = {},
+            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.White)
-                .border(
-                    width = 1.5.dp,
-                    color = Color(0xFFF1F1FA),
-                    shape = RoundedCornerShape(10.dp)
-                )
-        ) {
-            Text(
-                text = selectedCategoryName,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-                color = Color(0xFF91919F)
-            )
-            IconButton(
-                onClick = { expanded = !expanded },
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
+                .padding(top = 10.dp),
+            trailingIcon = {
                 Icon(
+                    modifier = Modifier
+                        .clickable { expanded = !expanded},
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Expand category dropdown",
                     tint = Color(0xFF91919F)
                 )
-            }
-            DropdownMenu(
+            },
+            singleLine = true,
+            readOnly = true
+        )
+
+        DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
