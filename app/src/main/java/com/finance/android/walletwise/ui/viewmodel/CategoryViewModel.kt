@@ -62,6 +62,10 @@ class CategoryViewModel(private val categoryRepository: CategoryRepository) : Vi
         _categoryUiState.value = categoryUiState.copy(amount = amount.toString())
     }
 
+     suspend fun findCategoryIdByName(name: String): Int {
+        return categoryRepository.findCategoryIdByName(name)
+    }
+
     // For getting categories of a specific type (similar to your transaction implementation)
     val expenseCategories: StateFlow<List<Category>> =
         allCategories

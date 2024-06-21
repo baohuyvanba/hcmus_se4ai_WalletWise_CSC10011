@@ -2,17 +2,21 @@ package com.finance.android.walletwise.ui.activity
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -69,6 +73,7 @@ import com.finance.android.walletwise.ui.viewmodel.TextExtractionViewModel
 
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -418,13 +423,14 @@ fun TabContent3(transactionUiState: TransactionUiState,
                 navigateBack: () -> Unit,
                 coroutineScope: CoroutineScope) {
     val viewModel: TextExtractionViewModel = viewModel()
-    val messages by viewModel.messages.observeAsState(listOf())
     var input by remember { mutableStateOf(TextFieldValue("")) }
+    val messages by viewModel.messages.observeAsState(listOf())
 
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
+        .padding(16.dp))
+    {
 //        Column(
 //            modifier = Modifier
 //                .fillMaxWidth()
@@ -440,48 +446,142 @@ fun TabContent3(transactionUiState: TransactionUiState,
 //                    .fillMaxSize() // Kích thước của hình ảnh
 //            )
 //        }
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(0.dp),
+//            verticalArrangement = Arrangement.Bottom,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        )
+//        {
+//            OutlinedTextField(
+//                value = input,
+//                onValueChange = { input = it },
+//                label = { org.commonmark.node.Text("Message") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom = 20.dp),
+//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+//                keyboardActions = KeyboardActions(onSend = {
+//                    if (input.text.isNotEmpty()) {
+//                        viewModel.extractText(input.text)
+//                        input = TextFieldValue("")
+//                    }
+//                })
+//            )
+//            NormalButton(
+//                text = "Send",
+//                onClick = {  if (input.text.isNotEmpty()) {
+//                    viewModel.extractText(input.text)
+//                    input = TextFieldValue("")
+//                    transactionUiState.copy(amount = viewModel.amountExtracted, date = viewModel.dateExtracted, description = viewModel.noteExtracted)
+//                    coroutineScope.launch {
+//                        expenseViewModel.saveTransactionExpense()
+//                        navigateBack
+//                    }
+//                } },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(WindowInsets.ime.asPaddingValues()),
+//                backgroundColor = colorResource(R.color.md_theme_primary),
+//                contentColor = colorResource(R.color.md_theme_onPrimary)
+//            )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(0.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                label = { org.commonmark.node.Text("Message") },
+                .imePadding()
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 0.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-                keyboardActions = KeyboardActions(onSend = {
-                    if (input.text.isNotEmpty()) {
-                        viewModel.extractText(input.text)
-                        input = TextFieldValue("")
-                    }
-                })
-            )
-            NormalButton(
-                text = "Send",
-                onClick = {  if (input.text.isNotEmpty()) {
+                    .padding(8.dp),
+                reverseLayout = true,
+            ) {
+                items(messages.reversed()) { message ->
+                    MessageItem(message)
+                }
+            }
+
+            Row(
+                modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    label = { org.commonmark.node.Text("Message Chatbot") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 0.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = {
+                        if (input.text.isNotEmpty()) {
+                            viewModel.extractText(input.text)
+                            input = TextFieldValue("")
+                        }
+                    })
+                )
+                IconButton(onClick = {  if (input.text.isNotEmpty()) {
                     viewModel.extractText(input.text)
                     input = TextFieldValue("")
-                    transactionUiState.copy(amount = viewModel.amountExtracted, date = viewModel.dateExtracted, description = viewModel.noteExtracted)
                     coroutineScope.launch {
-                        expenseViewModel.saveTransactionExpense()
-                        navigateBack
+                        delay(10000)
+                        Log.d("TransactionInfo", "Amount extracted: ${viewModel.amountExtracted}")
+                        Log.d("TransactionInfo", "Category extracted: ${viewModel.categoryExtracted}")
+                        Log.d("TransactionInfo", "Date extracted: ${viewModel.dateExtracted}")
+                        Log.d("TransactionInfo", "Note extracted: ${viewModel.noteExtracted}")
+//                        transactionUiState.copy(amount = viewModel.amountExtracted, idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted), date = viewModel.dateExtracted, description = viewModel.noteExtracted)
+//                        expenseViewModel.saveTransactionExpense()
+//                        navigateBack
+                        Log.d("test transactionUiState","complete transactionUiState 1")
+                        if (viewModel.amountExtracted.isNotEmpty() &&
+                            viewModel.categoryExtracted.isNotEmpty() &&
+                            viewModel.dateExtracted != null &&
+                            viewModel.noteExtracted.isNotEmpty()) {
+
+                            transactionUiState.copy(
+                                amount = viewModel.amountExtracted,
+                                idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted),
+                                date = viewModel.dateExtracted,
+                                description = viewModel.noteExtracted,
+                                time = LocalTime.now(),
+                            )
+                            val updatedTransactionUiState = transactionUiState.copy(
+                                amount = viewModel.amountExtracted,
+                                idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted),
+                                date = viewModel.dateExtracted,
+                                description = viewModel.noteExtracted,
+                                time = LocalTime.now(),
+                            )
+
+                            Log.d("TransactionUiState", "Updated transactionUiState: $updatedTransactionUiState")
+
+                            val categoryId = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted)
+                            if (categoryId != null && categoryId > 0) {
+                                expenseViewModel.saveTransactionExpense()
+                                Log.d("SaveTransaction", "Transaction saved successfully")
+
+                                navigateBack()
+                                Log.d("Navigation", "Navigated back successfully")
+                            } else {
+                                Log.e("TransactionError", "Invalid category ID: $categoryId")
+                            }
+                        } else {
+                            Log.e("TransactionInfo", "Extraction values are not valid or empty")
+                        }
                     }
-                } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            )
+                }
+                }) {
+                    Icon(
+                        Icons.Default.Send,
+                        contentDescription = "Send",
+                        tint = colorResource(R.color.md_theme_primary))
+                }
+            }
+
         }
     }
 }
-
 @Composable
 fun EditableAmountField(
     value: String,
@@ -736,4 +836,3 @@ fun CategoryIncomeDropdown(
             }
         }
     }
-}

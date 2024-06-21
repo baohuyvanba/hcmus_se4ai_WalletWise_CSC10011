@@ -11,6 +11,9 @@ interface CategoryRepository {
     suspend fun deleteCategory(category: Category)
 
     suspend fun updateCategory(category: Category)
+
+    suspend fun findCategoryIdByName(name: String): Int
+
 }
 
 class OfflineCategoryRepository(private val categoryDao: CategoryDao) : CategoryRepository {
@@ -23,5 +26,9 @@ class OfflineCategoryRepository(private val categoryDao: CategoryDao) : Category
     override suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)
 
     override suspend fun updateCategory(category: Category) = categoryDao.updateCategory(category)
+
+    override suspend fun findCategoryIdByName(name: String): Int {
+        return categoryDao.findCategoryIdByName(name)
+    }
 }
 

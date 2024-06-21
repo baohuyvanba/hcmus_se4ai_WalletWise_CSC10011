@@ -45,7 +45,12 @@ import kotlinx.coroutines.launch
 
 val defaultExpenseCategoryDtoTypeList = listOf(
     Category(id = 1, name = "INCOME", amount = 0),
-    Category(id = 2, name = "Food", amount = 0)
+    Category(id = 2, name = "Food & Drink", amount = 0),
+    Category(id = 3, name = "Education", amount = 0),
+    Category(id = 4, name = "Transportation", amount = 0),
+    Category(id = 5, name = "Sport & Entertainment", amount = 0),
+    Category(id = 6, name = "Shopping", amount = 0),
+    Category(id = 7, name = "House & Utilities", amount = 0),
 )
 
 @Database(entities = [Transaction::class, Category::class], version = 1, exportSchema = false)
@@ -63,7 +68,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Log.d("Test getDatabase","run getDatabase")
                 Room.databaseBuilder(context,
                     AppDatabase::class.java,
-                    "app_database_v2"
+                    "app_database_v4"
                 )
                     .fallbackToDestructiveMigration()
                     .addCallback(object : RoomDatabase.Callback() {

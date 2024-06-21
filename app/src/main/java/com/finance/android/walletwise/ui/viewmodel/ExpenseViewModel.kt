@@ -1,5 +1,6 @@
 package com.finance.android.walletwise.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,10 +23,18 @@ class ExpenseViewModel(private val transactionRepository: TransactionRepository)
     fun updateUiState(newTransactionUiState: TransactionUiState){
         transactionUiState= newTransactionUiState.copy(actionEnabled = newTransactionUiState.isValid())
     }
-    suspend fun saveTransactionExpense(){
-        if(transactionUiState.isValid()){
-            transactionUiState=transactionUiState.copy(type = "Expense")
-            transactionRepository.addTransaction(transactionUiState.toTransaction())
+    suspend fun saveTransactionExpense() {
+        if (transactionUiState.isValid()) {
+            transactionUiState = transactionUiState.copy(type = "Expense")
+            val transaction = transactionUiState.toTransaction()
+            Log.d("Transaction", "Saving transaction: $transaction")
+            try {
+                transactionRepository.addTransaction(transaction)
+                Log.d("Transaction", "Transaction saved successfully.")
+            } catch (e: Exception) {
+                Log.e("Transaction", "Error saving transaction: ${e.message}")
+                // Handle the error as needed
+            }
         }
     }
     suspend fun saveTransactionIncome(){
