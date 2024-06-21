@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Divider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -59,9 +61,9 @@ import com.finance.android.walletwise.ui.AppViewModelProvider
 import com.finance.android.walletwise.ui.fragment.NormalSwitch
 import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
 import com.finance.android.walletwise.ui.viewmodel.ExpenseViewModel
+import com.finance.android.walletwise.util.categoriesList
 import com.finance.android.walletwise.util.categoryIconsList
 import kotlinx.coroutines.launch
-
 
 //@Preview(showBackground = true)
 //@Composable
@@ -75,20 +77,19 @@ import kotlinx.coroutines.launch
 //    }
 //}
 @Composable
-fun ScreeneAddCategory(viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), navigateBack: () -> Unit){
-    AddCategoryScreen(categoryUIState = viewModel.categoryUiState,navigateBack=navigateBack)
+fun ScreenAddCategory(viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory), navigateBack: () -> Unit) {
+    AddCategoryScreen(categoryUIState = viewModel.categoryUiState, navigateBack = navigateBack)
 }
+
 @Composable
-fun AddCategoryScreen(categoryUIState: CategoryUIState,
-                      viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
-                      navigateBack: () -> Unit) {
-    var categoryName by remember { mutableStateOf("") }
-    var budget by remember { mutableStateOf("") }
-    var isRepeat by remember { mutableStateOf(true) }
-    var isChecked by remember { mutableStateOf(true)}
+fun AddCategoryScreen(
+    categoryUIState: CategoryUIState,
+    viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    navigateBack: () -> Unit
+) {
+    var isChecked by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
-
 
     Column(
         modifier = Modifier
@@ -97,8 +98,7 @@ fun AddCategoryScreen(categoryUIState: CategoryUIState,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Category icon:", fontSize = 20.sp, modifier = Modifier.padding(bottom
-        = 8.dp))
+        Text("Category icon:", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
 
         IconButton(
             onClick = { showBottomSheet = true },
@@ -108,103 +108,129 @@ fun AddCategoryScreen(categoryUIState: CategoryUIState,
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = CircleShape
                 ),
-        )
-        {
+        ) {
             Image(
                 painter = painterResource(
-                    id = categoryIconsList[categoryUIState.icon]
-                        ?: R.drawable.ic_category
+                    id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category
                 ),
-                contentDescription = "Category Icon: $categoryUIState.icon",
+                contentDescription = "Category Icon: ${categoryUIState.icon}",
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        NameCategoryTextField(categoryUIState = viewModel.categoryUiState, onValueChange = viewModel::updateUiState)
+
+        Spacer(modifier = Modifier.height(16.dp))
+        BudgetTextField(categoryUIState = viewModel.categoryUiState, onValueChange = viewModel::updateUiState)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        NameCategoryTextField(categoryUIState=viewModel.categoryUiState,onValueChange=viewModel::updateUiState)
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-        BudgetTextField(categoryUIState=viewModel.categoryUiState,onValueChange=viewModel::updateUiState)
-
-//        OutlinedTextField(
-//            value = budget,
-//            onValueChange = { budget = it },
-//            label = { Text("Enter budget") },
-//            singleLine = true,
-//            trailingIcon = {
-//                if (budget.isNotEmpty()) {
-//                    IconButton(onClick = { budget = "" }) {
-//                        Icon(Icons.Default.Clear, contentDescription = "Clear")
-//                    }
-//                }
-//            },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text("Repeat this budget category")
-//            Spacer(modifier = Modifier.weight(1f))
-//            Switch(
-//                checked = isRepeat,
-//                onCheckedChange = { isRepeat = it }
-//            )
-//        }
-
-        NormalSwitch(text = "Repeat this budget category",
+        NormalSwitch(
+            text = "Repeat this budget category",
             isChecked = isChecked,
             onCheckedChange = { isChecked = it },
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         NormalButton(
             text = "Save",
-            onClick = { coroutineScope.launch {
-                viewModel.saveCategory()
-                navigateBack()
-            }},
+            onClick = {
+                coroutineScope.launch {
+                    viewModel.saveCategory()
+                    navigateBack()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         )
+
+        if (showBottomSheet) {
+            IconsBottomSheet(
+                categoryUIState = viewModel.categoryUiState,
+                onIconSelected = { icon ->
+                    viewModel.updateUiState(viewModel.categoryUiState.copy(icon = icon))
+                    showBottomSheet = false
+                },
+                onDismissRequest = { showBottomSheet = false },
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IconsBottomSheet(
+    categoryUIState: CategoryUIState,
+    onIconSelected: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = "Choose Category Icon",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 64.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(categoriesList.size) { index ->
+                    IconButton(
+                        onClick = { onIconSelected(categoriesList[index]) },
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = CircleShape
+                            )
+                    ) {
+                        Image(
+                            painter = painterResource(id = categoryIconsList[categoriesList[index]] ?: R.drawable.ic_category),
+                            contentDescription = "Category Icon: ${categoriesList[index]}",
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun NameCategoryTextField(categoryUIState: CategoryUIState,
-                         onValueChange: (CategoryUIState) -> Unit = {}) {
+fun NameCategoryTextField(
+    categoryUIState: CategoryUIState,
+    onValueChange: (CategoryUIState) -> Unit = {}
+) {
     OutlinedTextField(
         value = categoryUIState.name,
-        onValueChange = { onValueChange(categoryUIState.copy(name=it))},
+        onValueChange = { onValueChange(categoryUIState.copy(name = it)) },
         label = { Text("Name") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
 }
+
 @Composable
-fun BudgetTextField(categoryUIState: CategoryUIState,
-                          onValueChange: (CategoryUIState) -> Unit = {})
-{
+fun BudgetTextField(
+    categoryUIState: CategoryUIState,
+    onValueChange: (CategoryUIState) -> Unit = {}
+) {
     OutlinedTextField(
         value = categoryUIState.amount,
-        onValueChange = { onValueChange(categoryUIState.copy(amount=it))},
+        onValueChange = { onValueChange(categoryUIState.copy(amount = it)) },
         label = { Text("Budget") },
         singleLine = true,
-//        trailingIcon = {
-//            if (budget.isNotEmpty()) {
-//                IconButton(onClick = { budget = "" }) {
-//                    Icon(Icons.Default.Clear, contentDescription = "Clear")
-//                }
-//            }
-//        },
         modifier = Modifier.fillMaxWidth()
     )
 }
-

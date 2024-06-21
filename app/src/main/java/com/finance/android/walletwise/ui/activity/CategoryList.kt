@@ -38,7 +38,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CategoryListScreen(
     viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory), // Inject your repository here
-    navigateToAddCategory: () -> Unit
+    navController: NavController
+//    navigateToAddCategory: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.getAllCategories()
@@ -47,61 +48,84 @@ fun CategoryListScreen(
 
     val categoryListState by viewModel.expenseCategories.collectAsState()
 
-    Scaffold(
-        topBar = {
-            WalletWiseTopAppBar(
-                title = "WalletWise",
-                useIconForTitle = true,
-                showNavigationButton = true,
-                showActionButton = true,
-                onNavigationClick = { /* TODO: Handle navigation click */ },
-                onActionClick = { /* TODO: Handle action click */ },
+//    Scaffold(
+//        topBar = {
+//            WalletWiseTopAppBar(
+//                title = "WalletWise",
+//                useIconForTitle = true,
+//                showNavigationButton = true,
+//                showActionButton = true,
+//                onNavigationClick = { /* TODO: Handle navigation click */ },
+//                onActionClick = { /* TODO: Handle action click */ },
+//            )
+//        },
+//        bottomBar = {
+//            WalletWiseBottomBar(
+//                selectedTab = 0,
+//                onTabSelected = { /* TODO: Handle tab selection */ },
+//                onHomeClick = { /* TODO: Handle home click */ },
+//                onExpenseListClick = { /* TODO: Handle expense list click */ },
+//                onCategoryListClick = { /* TODO: Handle category list click */ },
+//                onSettingsClick = { /* TODO: Handle settings click */ },
+//            )
+//        },
+//        floatingActionButton = {
+//            FAButton(
+//                onClick = navigateToAddCategory,
+//                icon = Icons.Default.Add,
+//                contentDescription = "Add Transaction"
+//            )
+//        },
+//        floatingActionButtonPosition = FabPosition.End,
+//        content = { innerPadding ->
+//            Surface(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(innerPadding)
+//                    .background(Color(0xFFF5F5F5))
+//            ) {
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    modifier = Modifier.padding(16.dp)
+//                ) {
+//                    BalanceSection(
+//                        title = "REMAINING BUDGET",
+//                        balance = "1500000",
+//                        currency = "VND"
+//                    )
+//                    LinearProgress()
+//                    Spacer(modifier = Modifier.height(16.dp))
+//                    CategoryList(categoryListState)
+//
+////
+////
+//                }
+//            }
+//        }
+//    )
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+//            .padding(innerPadding)
+            .background(Color(0xFFF5F5F5))
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            BalanceSection(
+                title = "REMAINING BUDGET",
+                balance = "1500000",
+                currency = "VND"
             )
-        },
-        bottomBar = {
-            WalletWiseBottomBar(
-                selectedTab = 0,
-                onTabSelected = { /* TODO: Handle tab selection */ },
-                onHomeClick = { /* TODO: Handle home click */ },
-                onExpenseListClick = { /* TODO: Handle expense list click */ },
-                onCategoryListClick = { /* TODO: Handle category list click */ },
-                onSettingsClick = { /* TODO: Handle settings click */ },
-            )
-        },
-        floatingActionButton = {
-            FAButton(
-                onClick = navigateToAddCategory,
-                icon = Icons.Default.Add,
-                contentDescription = "Add Transaction"
-            )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        content = { innerPadding ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    BalanceSection(
-                        title = "REMAINING BUDGET",
-                        balance = "1500000",
-                        currency = "VND"
-                    )
-                    LinearProgress()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    CategoryList(categoryListState)
+//            LinearProgress()
+            Spacer(modifier = Modifier.height(16.dp))
+            CategoryList(categoryListState)
 
 //
 //
-                }
-            }
         }
-    )
+    }
 }
 @Composable
 fun CategoryList(categoryList: List<Category>) {
