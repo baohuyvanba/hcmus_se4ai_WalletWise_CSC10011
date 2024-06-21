@@ -533,7 +533,6 @@ fun TabContent3(transactionUiState: TransactionUiState,
 //                        transactionUiState.copy(amount = viewModel.amountExtracted, idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted), date = viewModel.dateExtracted, description = viewModel.noteExtracted)
 //                        expenseViewModel.saveTransactionExpense()
 //                        navigateBack
-                        Log.d("test transactionUiState","complete transactionUiState 1")
                         if (viewModel.amountExtracted.isNotEmpty() &&
                             viewModel.categoryExtracted.isNotEmpty() &&
                             viewModel.dateExtracted != null &&
@@ -546,21 +545,15 @@ fun TabContent3(transactionUiState: TransactionUiState,
                                 description = viewModel.noteExtracted,
                                 time = LocalTime.now(),
                             )
-                            val updatedTransactionUiState = transactionUiState.copy(
-                                amount = viewModel.amountExtracted,
-                                idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted),
-                                date = viewModel.dateExtracted,
-                                description = viewModel.noteExtracted,
-                                time = LocalTime.now(),
-                            )
 
-                            Log.d("TransactionUiState", "Updated transactionUiState: $updatedTransactionUiState")
+                            expenseViewModel.updateUiState(transactionUiState)
+
+                            Log.d("test transactionUiState","update transactionUiState $transactionUiState")
 
                             val categoryId = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted)
                             if (categoryId != null && categoryId > 0) {
                                 expenseViewModel.saveTransactionExpense()
                                 Log.d("SaveTransaction", "Transaction saved successfully")
-
                                 navigateBack()
                                 Log.d("Navigation", "Navigated back successfully")
                             } else {
