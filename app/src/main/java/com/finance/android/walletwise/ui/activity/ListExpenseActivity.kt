@@ -2,6 +2,7 @@ package com.finance.android.walletwise.ui.activity
 
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.finance.android.walletwise.Cardlistt
 import com.finance.android.walletwise.R
 import com.finance.android.walletwise.WalletWiseDestination
 import com.finance.android.walletwise.model.Category.CategoryUIState
@@ -56,24 +58,14 @@ import com.finance.android.walletwise.ui.AppViewModelProvider
 
 import com.finance.android.walletwise.ui.viewmodel.TransactionsScreenViewModel
 import com.finance.android.walletwise.model.Transaction.Transaction
+import com.finance.android.walletwise.rangeselectoritem
 import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
+import com.finance.android.walletwise.util.categoryIconsList
 
 
 import java.time.format.DateTimeFormatter
 
 
-
-//Click có vẻ fail-->fix
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewListExpenseScreen() {
-//    ListExpenseScreen(
-//        onExpenseClick = { expense ->
-//            // Điều này sẽ chỉ in ra một log khi một expense được click trong preview
-//            println("Expense clicked: $expense")
-//        }
-//    )
-//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,17 +83,26 @@ fun ListExpenseScreen(viewModel: TransactionsScreenViewModel = androidx.lifecycl
             Color(0xFFFFF7F2)
         )){
         Column() {
-            var selectedCategory by remember { mutableStateOf("All") }
-            Column {
-                timedropdown(selectedCategory = selectedCategory) { category ->
-                    selectedCategory = category
-                }
-            }
+//            var x by remember { mutableStateOf("All") }
 
-            Spacer(modifier = Modifier.height(1.dp))
 
-            Text(text = selectedCategory, color = Color(0xFF0D0E0F), fontSize = 18.sp, fontWeight =FontWeight.SemiBold,
-                modifier = Modifier.padding(20.dp))
+            Spacer(modifier = Modifier.height(60.dp))
+            val x = selecttime(items = listOf("Today", "Week", "Month", "Year"))
+            Spacer(modifier = Modifier.height(25.dp))
+//            Row(
+//                horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+//                    .padding(start = 20.dp, end = 15.dp)
+//                    .fillMaxWidth()
+//            ) {
+//                Text(
+//                    text = "Recent Transaction",
+//                    fontSize = 18.sp,
+//                    color = Color(0xff292B2D),
+//                    fontWeight = FontWeight.SemiBold
+//                )
+//            }
+//            Spacer(modifier = Modifier.height(15.dp))
+
             if (transactionScreenUiState.transactionList.isEmpty()) {
                 Text(
                     text = "No Items",
@@ -111,86 +112,19 @@ fun ListExpenseScreen(viewModel: TransactionsScreenViewModel = androidx.lifecycl
             } else {
                 ExpenseList(
                     transactionList =
-                    if(selectedCategory.equals("Today")){
-                        transactionsScreenUiStateToday.transactionList
-                    }
-                    else if(selectedCategory.equals("Week")){
-                        transactionsScreenUiStateWeek.transactionList
-                    }
-                    else if(selectedCategory.equals("Month")){
-                        transactionsScreenUiStateMonth.transactionListt
-                    }
-                    else if(selectedCategory.equals("Year")){
-                        transactionsScreenUiStateYear.transactionList
-                    }
-                    else{
-                        transactionScreenUiState.transactionList
-                    },
+                        when (x) {
+                            0 -> transactionsScreenUiStateToday.transactionList
+                            1 -> transactionsScreenUiStateWeek.transactionList
+                            2 -> transactionsScreenUiStateMonth.transactionListt
+                            else -> transactionsScreenUiStateYear.transactionList
+                        },
                     navController = navController)
             }
         }
     }
 
 }
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun timedropdown(selectedCategory: String, onCategorySelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Column {
-        Box(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(0.35f)
-                .border(
-                    width = 2.5.dp,
-                    color = Color(0xFFF1F1FA),
-                    shape = RoundedCornerShape(25.dp)
-                )
-                .clip(RoundedCornerShape(25.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.img_9),
-                    contentDescription = "DropDown",
-                    tint = Color(0xFF7F3DFF)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = selectedCategory,
-                    color = Color(0xFF212325)
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    painter = painterResource(id =  R.drawable.img_9 ),
-                    contentDescription = "DropDown",
-                    tint = Color(0xFF7F3DFF)
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color(0xFFFCFCFC))
-            ) {
-                timeitems.forEach { category ->
-                    DropdownMenuItem(
-                        onClick = {
-                            onCategorySelected(category)
-                            expanded = false
-                        },
-                        text = { Text(text = category, color = Color.Black) }
-                    )
-                }
-            }
-        }
-    }
-}
+
 @Composable
 fun ExpenseList(transactionList: List<Transaction>,navController: NavController) {
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
@@ -200,14 +134,7 @@ fun ExpenseList(transactionList: List<Transaction>,navController: NavController)
     }
 }
 
-//@Composable
-//fun getIcon(iconName: String): ImageVector {
-//    return when (iconName) {
-//        "ShoppingCart" -> Icons.Default.ShoppingCart
-//        "Home" -> Icons.Default.Home
-//        else -> Icons.Default.ShoppingCart // default icon if none match
-//    }
-//}
+
 @Composable
 fun TransactionCard(transaction: Transaction,
                     categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
@@ -223,7 +150,8 @@ fun TransactionCard(transaction: Transaction,
     val selectedCategory = categoryListState.find { it.id == transaction.idCategory }
     // Debug log to check selected category
     Log.d("TransactionCard", "Selected Category: $selectedCategory")
-    val selectedCategoryName = selectedCategory?.name ?: "Select a Category"
+    val selectedCategoryName = selectedCategory?.name ?: "Name Category"
+    val selectedCategoryIcon = selectedCategory?.icon ?: "Icon Category"
 
 
 
@@ -268,43 +196,14 @@ fun TransactionCard(transaction: Transaction,
                         contentAlignment = Alignment.Center, modifier = Modifier
                             .clip(RoundedCornerShape(15.dp))
                             .size(75.dp)
-                            .background(
-                                if (selectedCategoryName.equals("Shopping")) {
-                                    Color(0xFFFCEED4)
-                                } else if (selectedCategoryName.equals("Food")) {
-                                    Color(0xFFFDD5D7)
-                                } else if (selectedCategoryName.equals("Entertainment")) {
-                                    Color(0xFFB6E7E7)
-                                } else {
-                                    Color(0xFFEEE5FF)
-                                }
-                            )
                             .padding(5.dp)
                     ) {
-                        Icon(
+                        Image(
                             painter = painterResource(
-                                id =
-                                if (selectedCategoryName.equals("Shopping")) {
-                                    R.drawable.shopping
-                                } else if (transaction.idCategory.equals("Food")) {
-                                    R.drawable.img_11
-                                } else if (transaction.idCategory.equals("Entertainment")) {
-                                    R.drawable.entertain
-                                } else {
-                                    R.drawable.otherss
-                                }
-                            ), contentDescription = "Grocery",
+                                id = categoryIconsList[selectedCategoryIcon] ?: R.drawable.ic_category
+                            ), contentDescription = "Category Icon: $selectedCategoryIcon",
                             modifier = Modifier.size(40.dp),
-                            tint =
-                            if (transaction.idCategory.equals("Shopping")) {
-                                Color(0xFFFCAC12)
-                            } else if (transaction.idCategory.equals("Food")) {
-                                Color(0xFFFD3C4A)
-                            } else if (transaction.idCategory.equals("Entertainment")) {
-                                Color(0xFF11808F)
-                            } else {
-                                Color(0xFF7F3DFF)
-                            }
+
                         )
                     }
                     Spacer(modifier = Modifier.width(5.dp))
@@ -357,39 +256,14 @@ fun TransactionCard(transaction: Transaction,
                         contentAlignment = Alignment.Center, modifier = Modifier
                             .clip(RoundedCornerShape(15.dp))
                             .size(75.dp)
-                            .background(
-                                if (transaction.idCategory.equals("Salary")) {
-                                    Color(0xFFCFFAEA)
-                                } else if (transaction.idCategory.equals("Gifts")) {
-                                    Color(0xFFBDDCFF)
-                                } else {
-                                    Color(0xFFEEE5FF)
-                                }
-                            )
                             .padding(5.dp)
                     ) {
-                        Icon(
+                        Image(
                             painter = painterResource(
-                                id =
-                                if (transaction.idCategory.equals("Salary")) {
-                                    R.drawable.salary
-                                } else if (transaction.idCategory.equals("Gifts")) {
-                                    R.drawable.gifts
-                                } else {
-                                    R.drawable.otherss
-                                }
-
-                            ), contentDescription = "Grocery",
+                                id = categoryIconsList[selectedCategoryIcon] ?: R.drawable.ic_category
+                            ), contentDescription = "Category Icon: $selectedCategoryIcon",
                             modifier = Modifier.size(40.dp),
-                            tint =
-                            if (transaction.idCategory.equals("Salary")) {
-                                Color(0xFF00A86B)
-                            } else if (transaction.idCategory.equals("Gifts")) {
-                                Color(0xFF0077FF)
-                            } else {
-                                Color(0xFF7F3DFF)
-                            }
-                        )
+                            )
                     }
                     Spacer(modifier = Modifier.width(5.dp))
                     Column(modifier = Modifier.padding(10.dp)) {
@@ -431,6 +305,30 @@ fun TransactionCard(transaction: Transaction,
     }
 }
 
+@Composable
+fun selecttime(items: List<String>, modifier: Modifier= Modifier,
+               activeHighlightColor: Color = Color(0xFFFCEED4),
+               activeTextColor: Color = Color(0xFFFCAC12),
+               inactiveTextColor: Color = Color(0xFF91919F),
+               initialSelectedItemIndex: Int=0): Int{
+    var selecteditemindex by remember {
+        mutableStateOf(initialSelectedItemIndex)
+    }
+    Row(horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        items.forEachIndexed{index,item->
+            rangeselectoritem(item= item,
+                isSelected = index==selecteditemindex,
+                activeHighlightColor=activeHighlightColor,
+                activeTextColor=activeTextColor,
+                inactiveTextColor=inactiveTextColor){
+                selecteditemindex=index
+            }
+        }
 
-
-val timeitems = listOf("All", "Today", "Week", "Month", "Year")
+    }
+    return selecteditemindex
+}
