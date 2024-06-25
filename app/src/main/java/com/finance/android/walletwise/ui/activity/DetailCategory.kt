@@ -9,19 +9,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,57 +23,60 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.finance.android.walletwise.ui.fragment.NormalTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finance.android.walletwise.R
-import com.finance.android.walletwise.ui.fragment.NormalButton
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import com.finance.android.walletwise.WalletWiseTheme
 import com.finance.android.walletwise.ui.fragment.BalanceSection
 import com.finance.android.walletwise.ui.fragment.DetailedBalanceSection_2
 import com.finance.android.walletwise.ui.fragment.NormalSwitch
+import com.finance.android.walletwise.ui.viewmodel.CategoryViewModel
+import com.finance.android.walletwise.util.categoryIconsList
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finance.android.walletwise.WalletWiseDestination
+import com.finance.android.walletwise.model.Category.CategoryUIState
+import com.finance.android.walletwise.ui.AppViewModelProvider
 
 
-@Preview(showBackground = true)
+
+//@Composable
+//fun DetailCategoryScreen(
+//    categoryId: Int,
+//    viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory), navigateBack: () -> Unit)
+//) {
+//    val categoryUIState by viewModel.getCategoryUiStateById(categoryId).collectAsState(initial = null)
+//    categoryUIState?.let { state ->
+//        BudgetDetailScreen(
+//            categoryUIState = state,
+//            onEditClick = { /* Implement edit action */ },
+//            navigateBack = navigateBack
+//        )
+//    }
+//}
+
+//object DetailCategoryDestination : WalletWiseDestination {
+//    override val route = "DetailCategory"
+//
+//    override val icon: ImageVector = Icons.Default.Home
+//    const val tIdArg = "transactionId"
+//    val routeWithArgs = "$route/{$transactionIdArg}"
+//}
+
 @Composable
-fun BudgetDetailScreenPreview() {
-    WalletWiseTheme {
-        BudgetDetailScreen(
-            balance = "210000",
-            currency = "VND",
-            incomeAmount = "300000",
-            outcomeAmount = "90000",
-            text = "Repeat this budget category",
-            isChecked = true,
-            onCheckedChange = {}
-        )
-    }
-}
-
-@Composable
-fun BudgetDetailScreen(balance: String,
-                       currency: String,
-                       incomeAmount: String,
-                       outcomeAmount: String,
-                       text: String,
-                       isChecked: Boolean,
-                       onCheckedChange: (Boolean) -> Unit,
-                       modifier: Modifier = Modifier
+fun BudgetDetailScreen(
+    categoryUIState: CategoryUIState,
+    onEditClick: () -> Unit,
+    navigateBack: () -> Unit
 ) {
-    var isChecked by remember { mutableStateOf(true)}
+    var isChecked by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -92,14 +87,13 @@ fun BudgetDetailScreen(balance: String,
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            IconButton(onClick = { /* Close action */ }) {
+            IconButton(onClick = navigateBack) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close"
                 )
             }
         }
-
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -109,63 +103,61 @@ fun BudgetDetailScreen(balance: String,
             modifier = Modifier.fillMaxWidth()
         ) {
             Image(
-                painter = painterResource(id = R.drawable.category_icon_food___drink), // replace with your drawable resource
-                contentDescription = "Food & Drink",
+                painter = painterResource(id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category),
+                contentDescription = "Category Icon",
                 modifier = Modifier.size(39.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "Food & Drink",
+                text = categoryUIState.name,
                 style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
-        //Divider
+
         Divider(
             modifier = Modifier
                 .padding(start = 8.dp, end = 8.dp)
                 .padding(top = 16.dp, bottom = 16.dp),
             color = Color.Gray.copy(alpha = 0.5f),
-            thickness = 1.dp)
+            thickness = 1.dp
+        )
 
         BalanceSection(
             title = "BUDGET",
-            balance = balance,
-            currency = currency,
+            balance = categoryUIState.amount,
+            currency = "VND",
             showTitle = true,
             showCurrencyBackground = true,
-            currencyBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+            currencyBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
         )
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
         DetailedBalanceSection_2(
-            incomeAmount = incomeAmount,
-            outcomeAmount = outcomeAmount,
+            incomeAmount = "0",  // Example value, replace with actual data
+            outcomeAmount = categoryUIState.amount,  // Example value, replace with actual data
             onIncomeClick = {},
-            onOutcomeClick = {},
+            onOutcomeClick = {}
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        NormalSwitch(text = "Repeat this budget category",
+        NormalSwitch(
+            text = "Repeat this budget category",
             isChecked = isChecked,
             onCheckedChange = { isChecked = it },
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         IconButton(
-            onClick = { /* Edit action */ },
+            onClick = onEditClick,
             modifier = Modifier
                 .align(Alignment.End)
-                .offset(x = (130).dp)
-                .offset(y = (180).dp)
-                .padding(150.dp)
                 .background(Color(0xFFE3F2FD), CircleShape)
         ) {
             Icon(
@@ -175,4 +167,3 @@ fun BudgetDetailScreen(balance: String,
         }
     }
 }
-

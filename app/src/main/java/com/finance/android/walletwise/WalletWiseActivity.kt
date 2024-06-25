@@ -143,17 +143,7 @@ fun Navigation(navController: NavHostController){
                                     contentDescription = "Add Transaction",
                                 )
                             }
-//                            FloatingActionButton(
-//                                onClick = {
-//                                    navController.navigate("ExpenseScreen")
-//                                },
-//                                modifier = Modifier.padding(bottom=5.dp)
-//                            ) {
-//                                Image(
-//                                    painter = painterResource(id = R.drawable.salary),
-//                                    contentDescription = "Add Expense",
-//                                )
-//                            }
+//
 
                         }
 
@@ -169,16 +159,14 @@ fun Navigation(navController: NavHostController){
 
         composable("Transactions"){
 
-            Scaffold(topBar ={TransactionAppBar(
-                title="Transactions",
-                canNavigateBack =navController.previousBackStackEntry != null ,
-                navigateUp = { navController.navigateUp() },
-                topBarState = true)} ,
+            Scaffold(
                 bottomBar = {
                     bottommenu(items = listOf(
                         BottomMenuContent("Home","Home",R.drawable.ic_circle_filled),
                         BottomMenuContent("Transactions","Transactions",R.drawable.otherss),
-                    ), navController = navController, onItemClick = {
+                        BottomMenuContent("Category","Category",R.drawable.entertain),
+
+                        ), navController = navController, onItemClick = {
                         navController.navigate(it.route)
                     }, bottomBarState = true)
                 }){
@@ -187,13 +175,60 @@ fun Navigation(navController: NavHostController){
 
         }
         composable("Category"){
+            var expanded by remember { mutableStateOf(false) }
+            Scaffold(bottomBar = {
+                bottommenu(items = listOf(
+                    BottomMenuContent("Home","Home",R.drawable.ic_circle_filled),
+                    BottomMenuContent("Transactions","Transactions",R.drawable.otherss),
+                    BottomMenuContent("Category","Category",R.drawable.entertain),
+                ), navController = navController, onItemClick = {
+                    navController.navigate(it.route)
+                }, bottomBarState = true)
+            },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            expanded = !expanded
+                            //navController.navigate("ExpenseScreen")
+                        },
+                        modifier = Modifier.padding(bottom=5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add Category",
+                            tint = Color.White
+                        )
+                    }
+                    if (expanded){
+                        Column {
+                            FloatingActionButton(
+                                onClick = {
+                                    navController.navigate("AddCategory")
+                                },
+                                modifier = Modifier.padding(bottom=15.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_remind_event),
+                                    contentDescription = "Add Category",
+                                )
+                            }
+//
 
-            CategoryListScreen(navigateToAddCategory = { navController.navigate("AddCategory") })
+                        }
+
+                    }
+
+                },
+                content = {
+                    CategoryListScreen(navController = navController)
+                }
+            )
+
+
 
         }
         composable("AddCategory"){
-
-            ScreeneAddCategory(navigateBack = { navController.popBackStack() })
+            ScreenAddCategory(navigateBack = { navController.popBackStack() })
 
         }
 
@@ -209,16 +244,15 @@ fun Navigation(navController: NavHostController){
         ){
             Scaffold(
                 topBar ={TransactionAppBar(
-                title="Edit Transaction",
-                canNavigateBack =navController.previousBackStackEntry != null ,
-                navigateUp = { navController.navigateUp() },
-                topBarState = true)}) {
+                    title="Edit Transaction",
+                    canNavigateBack =navController.previousBackStackEntry != null ,
+                    navigateUp = { navController.navigateUp() },
+                    topBarState = true)}) {
                 EditScreenExpense(navigateBack = { navController.popBackStack() })
             }
         }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
