@@ -417,75 +417,21 @@ fun TabContent2() {
 }
 
 @Composable
-fun TabContent3(transactionUiState: TransactionUiState,
-                expenseViewModel: ExpenseViewModel= androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
-                categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
-                navigateBack: () -> Unit,
-                coroutineScope: CoroutineScope) {
+fun TabContent3(
+    transactionUiState: TransactionUiState,
+    expenseViewModel: ExpenseViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    categoryViewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory),
+    navigateBack: () -> Unit,
+    coroutineScope: CoroutineScope
+) {
     val viewModel: TextExtractionViewModel = viewModel()
     var input by remember { mutableStateOf(TextFieldValue("")) }
     val messages by viewModel.messages.observeAsState(listOf())
 
-
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp))
-    {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .align(Alignment.TopCenter) // Aligns the column at the top center
-//                .padding(0.dp),
-//            verticalArrangement = Arrangement.Top,
-//            horizontalAlignment = Alignment.Start
-//        ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.message),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .fillMaxSize() // Kích thước của hình ảnh
-//            )
-//        }
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(0.dp),
-//            verticalArrangement = Arrangement.Bottom,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        )
-//        {
-//            OutlinedTextField(
-//                value = input,
-//                onValueChange = { input = it },
-//                label = { org.commonmark.node.Text("Message") },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(bottom = 20.dp),
-//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-//                keyboardActions = KeyboardActions(onSend = {
-//                    if (input.text.isNotEmpty()) {
-//                        viewModel.extractText(input.text)
-//                        input = TextFieldValue("")
-//                    }
-//                })
-//            )
-//            NormalButton(
-//                text = "Send",
-//                onClick = {  if (input.text.isNotEmpty()) {
-//                    viewModel.extractText(input.text)
-//                    input = TextFieldValue("")
-//                    transactionUiState.copy(amount = viewModel.amountExtracted, date = viewModel.dateExtracted, description = viewModel.noteExtracted)
-//                    coroutineScope.launch {
-//                        expenseViewModel.saveTransactionExpense()
-//                        navigateBack
-//                    }
-//                } },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(WindowInsets.ime.asPaddingValues()),
-//                backgroundColor = colorResource(R.color.md_theme_primary),
-//                contentColor = colorResource(R.color.md_theme_onPrimary)
-//            )
+        .padding(16.dp)) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -512,7 +458,7 @@ fun TabContent3(transactionUiState: TransactionUiState,
                     label = { org.commonmark.node.Text("Message Chatbot") },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 0.dp),
+                        .padding(end = 8.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = {
                         if (input.text.isNotEmpty()) {
@@ -521,57 +467,57 @@ fun TabContent3(transactionUiState: TransactionUiState,
                         }
                     })
                 )
-                IconButton(onClick = {  if (input.text.isNotEmpty()) {
-                    viewModel.extractText(input.text)
-                    input = TextFieldValue("")
-                    coroutineScope.launch {
-                        delay(10000)
-                        Log.d("TransactionInfo", "Amount extracted: ${viewModel.amountExtracted}")
-                        Log.d("TransactionInfo", "Category extracted: ${viewModel.categoryExtracted}")
-                        Log.d("TransactionInfo", "Date extracted: ${viewModel.dateExtracted}")
-                        Log.d("TransactionInfo", "Note extracted: ${viewModel.noteExtracted}")
-//                        transactionUiState.copy(amount = viewModel.amountExtracted, idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted), date = viewModel.dateExtracted, description = viewModel.noteExtracted)
-//                        expenseViewModel.saveTransactionExpense()
-//                        navigateBack
-                        if (viewModel.amountExtracted.isNotEmpty() &&
-                            viewModel.categoryExtracted.isNotEmpty() &&
-                            viewModel.dateExtracted != null &&
-                            viewModel.noteExtracted.isNotEmpty()) {
+                IconButton(onClick = {
+                    if (input.text.isNotEmpty()) {
+                        viewModel.extractText(input.text)
+                        input = TextFieldValue("")
+                        coroutineScope.launch {
+                            delay(10000)
+                            Log.d("TransactionInfo", "Amount extracted: ${viewModel.amountExtracted}")
+                            Log.d("TransactionInfo", "Category extracted: ${viewModel.categoryExtracted}")
+                            Log.d("TransactionInfo", "Date extracted: ${viewModel.dateExtracted}")
+                            Log.d("TransactionInfo", "Note extracted: ${viewModel.noteExtracted}")
 
-                            transactionUiState.copy(
-                                amount = viewModel.amountExtracted,
-                                idCategory = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted),
-                                date = viewModel.dateExtracted,
-                                description = viewModel.noteExtracted,
-                                time = LocalTime.now(),
-                            )
+                            if (viewModel.amountExtracted.isNotEmpty() &&
+                                viewModel.categoryExtracted.isNotEmpty() &&
+                                viewModel.dateExtracted != null &&
+                                viewModel.noteExtracted.isNotEmpty()) {
 
-                            expenseViewModel.updateUiState(transactionUiState)
+                                val categoryId = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted)
+                                if (categoryId != null && categoryId > 0) {
+                                    val updatedTransactionUiState = transactionUiState.copy(
+                                        amount = viewModel.amountExtracted,
+                                        idCategory = categoryId,
+                                        date = viewModel.dateExtracted,
+                                        description = viewModel.noteExtracted,
+                                        time = LocalTime.now()
+                                    )
 
-                            Log.d("test transactionUiState","update transactionUiState $transactionUiState")
+                                    expenseViewModel.updateUiState(updatedTransactionUiState)
+                                    Log.d("test transactionUiState", "update transactionUiState $updatedTransactionUiState")
 
-                            val categoryId = categoryViewModel.findCategoryIdByName(viewModel.categoryExtracted)
-                            if (categoryId != null && categoryId > 0) {
-                                expenseViewModel.saveTransactionExpense()
-                                Log.d("SaveTransaction", "Transaction saved successfully")
-                                navigateBack()
-                                Log.d("Navigation", "Navigated back successfully")
+                                    coroutineScope.launch {
+                                        expenseViewModel.saveTransactionExpense()
+                                        Log.d("SaveTransaction", "Transaction saved successfully")
+                                        navigateBack()
+                                        Log.d("Navigation", "Navigated back successfully")
+                                    }
+                                } else {
+                                    Log.e("TransactionError", "Invalid category ID: $categoryId")
+                                }
                             } else {
-                                Log.e("TransactionError", "Invalid category ID: $categoryId")
+                                Log.e("TransactionInfo", "Extraction values are not valid or empty")
                             }
-                        } else {
-                            Log.e("TransactionInfo", "Extraction values are not valid or empty")
                         }
                     }
-                }
                 }) {
                     Icon(
                         Icons.Default.Send,
                         contentDescription = "Send",
-                        tint = colorResource(R.color.md_theme_primary))
+                        tint = colorResource(R.color.md_theme_primary)
+                    )
                 }
             }
-
         }
     }
 }

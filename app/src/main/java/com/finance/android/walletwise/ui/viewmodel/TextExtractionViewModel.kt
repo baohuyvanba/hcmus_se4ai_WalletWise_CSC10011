@@ -28,7 +28,7 @@ class TextExtractionViewModel : ViewModel() {
 
     private val model: GenerativeModel = GenerativeModel(
         "gemini-1.5-flash",
-        "AIzaSyC-4rIhUxhmsOkEOsSP-rz15T0wvMGIKtc",
+        "AIzaSyCGcuHhzY0K3zu2BwlP5KjVE3rA3LtI-MI",
         generationConfig = generationConfig {
             temperature = 1f
             topK = 64
@@ -84,19 +84,22 @@ class TextExtractionViewModel : ViewModel() {
                     text(userMessage)
                 }
             )
+            Log.d("Test", "Starting chat with chatHistory: $chatHistory")
             val chat = model.startChat(chatHistory)
+            Log.d("Test", "Chat started, sending message: $userMessage")
             val response = chat.sendMessage(userMessage)
             val modelResponse = response.text ?: ""
+            Log.d("Test", "Response received: $modelResponse")
             withContext(Dispatchers.Main) {
                 extractVariables(modelResponse)
-//                if (amountExtracted.isNotEmpty() && categoryExtracted.isNotEmpty() && dateExtracted != null && noteExtracted.isNotEmpty()) {
-//                    Log.d("TransactionInfo", "Amount extracted: $amountExtracted")
-//                    Log.d("TransactionInfo", "Category extracted: $categoryExtracted")
-//                    Log.d("TransactionInfo", "Date extracted: $dateExtracted")
-//                    Log.d("TransactionInfo", "Note extracted: $noteExtracted")
-//                } else {
-//                    Log.e("TransactionInfo", "Failed to extract all required values")
-//                }
+                if (amountExtracted.isNotEmpty() && categoryExtracted.isNotEmpty() && dateExtracted != null && noteExtracted.isNotEmpty()) {
+                    Log.d("TransactionInfo", "Amount extracted: $amountExtracted")
+                    Log.d("TransactionInfo", "Category extracted: $categoryExtracted")
+                    Log.d("TransactionInfo", "Date extracted: $dateExtracted")
+                    Log.d("TransactionInfo", "Note extracted: $noteExtracted")
+                } else {
+                    Log.e("TransactionInfo", "Failed to extract all required values")
+                }
             }
         }
     }

@@ -53,7 +53,7 @@ val defaultExpenseCategoryDtoTypeList = listOf(
     Category(id = 7, name = "House & Utilities", amount = 0),
 )
 
-@Database(entities = [Transaction::class, Category::class], version = 1, exportSchema = false)
+@Database(entities = [Transaction::class, Category::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -68,7 +68,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Log.d("Test getDatabase","run getDatabase")
                 Room.databaseBuilder(context,
                     AppDatabase::class.java,
-                    "app_database_v4"
+                    "app_database_v6"
                 )
                     .fallbackToDestructiveMigration()
                     .addCallback(object : RoomDatabase.Callback() {
