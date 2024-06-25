@@ -3,6 +3,7 @@ package com.finance.android.walletwise.ui.screen
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,7 +27,9 @@ import com.finance.android.walletwise.R
 import com.finance.android.walletwise.model.Category.Category
 import com.finance.android.walletwise.model.Transaction.Transaction
 import com.finance.android.walletwise.ui.AppViewModelProvider
+import com.finance.android.walletwise.ui.activity.DetailCategoryDestination
 import com.finance.android.walletwise.ui.activity.TransactionCard
+import com.finance.android.walletwise.ui.activity.TransactionEditDestination
 import com.finance.android.walletwise.ui.fragment.BalanceSection
 import com.finance.android.walletwise.ui.fragment.FAButton
 import com.finance.android.walletwise.ui.fragment.WalletWiseBottomBar
@@ -120,7 +123,7 @@ fun CategoryListScreen(
             )
 //            LinearProgress()
             Spacer(modifier = Modifier.height(16.dp))
-            CategoryList(categoryListState)
+            CategoryList(categoryListState, navController = navController)
 
 //
 //
@@ -128,10 +131,10 @@ fun CategoryListScreen(
     }
 }
 @Composable
-fun CategoryList(categoryList: List<Category>) {
+fun CategoryList(categoryList: List<Category>, navController: NavController) {
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
         items(items = categoryList, key = { it.id }) { item ->
-            BudgetProgressCard(category = item)
+            BudgetProgressCard(category = item,navController = navController)
         }
     }
 }
@@ -161,17 +164,19 @@ fun LinearProgress() {
 
 
 @Composable
-fun BudgetProgressCard(category: Category ){
+fun BudgetProgressCard(category: Category, navController: NavController ){
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable {navController.navigate("${DetailCategoryDestination.route}/${category.id}")}
             .padding(vertical = 6.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(), // Use CardDefaults.cardElevation() instead of specific value
     ) {
         // Add padding inside the Card
-        Box(modifier = Modifier.padding(16.dp)) {
+        Box(modifier = Modifier
+            .padding(16.dp)) {
             BudgetProgress(category)
         }
     }

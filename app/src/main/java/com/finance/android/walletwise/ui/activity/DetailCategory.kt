@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Divider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -11,15 +13,20 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,8 +45,12 @@ import com.finance.android.walletwise.util.categoryIconsList
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finance.android.walletwise.WalletWiseDestination
 import com.finance.android.walletwise.model.Category.CategoryUIState
+import com.finance.android.walletwise.model.Transaction.TransactionUiState
 import com.finance.android.walletwise.ui.AppViewModelProvider
-
+import com.finance.android.walletwise.ui.fragment.NormalButton
+import com.finance.android.walletwise.ui.viewmodel.EditTransactionViewModel
+import com.finance.android.walletwise.util.categoriesList
+import kotlinx.coroutines.launch
 
 
 //@Composable
@@ -57,21 +68,22 @@ import com.finance.android.walletwise.ui.AppViewModelProvider
 //    }
 //}
 
-//object DetailCategoryDestination : WalletWiseDestination {
-//    override val route = "DetailCategory"
-//
-//    override val icon: ImageVector = Icons.Default.Home
-//    const val tIdArg = "transactionId"
-//    val routeWithArgs = "$route/{$transactionIdArg}"
-//}
+object DetailCategoryDestination : WalletWiseDestination {
+    override val route = "DetailCategory"
+
+    override val icon: ImageVector = Icons.Default.Home
+    const val categoryIdArg = "CategoryId"
+    val routeWithArgs = "$route/{$categoryIdArg}"
+}
 
 @Composable
 fun BudgetDetailScreen(
-    categoryUIState: CategoryUIState,
-    onEditClick: () -> Unit,
-    navigateBack: () -> Unit
+    viewModel: CategoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory= AppViewModelProvider.Factory),
+    navigateBack: () -> Unit, categoryUIState: CategoryUIState
 ) {
     var isChecked by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,7 +95,7 @@ fun BudgetDetailScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Detail",
+                text = "Detail & Edit",
                 style = MaterialTheme.typography.headlineSmall
             )
 
@@ -102,68 +114,234 @@ fun BudgetDetailScreen(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Image(
-                painter = painterResource(id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category),
-                contentDescription = "Category Icon",
-                modifier = Modifier.size(39.dp)
-            )
+//            IconButton(
+//                onClick = { showBottomSheet = true },
+//                modifier = Modifier
+//                    .padding(top = 8.dp)
+//                    .background(
+//                        color = MaterialTheme.colorScheme.surfaceVariant,
+//                        shape = CircleShape
+//                    ),
+//            ) {
+//                Image(
+//                    painter = painterResource(
+//                        id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category
+//                    ),
+//                    contentDescription = "CategoryIconDetail: ${categoryUIState.icon}",
+//                    modifier = Modifier.size(39.dp)
+//                )
+//            }
+////            Image(
+////                painter = painterResource(id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category),
+////                contentDescription = "Category Icon",
+////                modifier = Modifier.size(39.dp)
+////            )
+//
+//            Spacer(modifier = Modifier.width(8.dp))
+//
+//            Text(
+//                text = categoryUIState.name,
+//                style = MaterialTheme.typography.headlineLarge,
+//                modifier = Modifier.padding(bottom = 8.dp)
+//            )
+//        }
+//
+//        Divider(
+//            modifier = Modifier
+//                .padding(start = 8.dp, end = 8.dp)
+//                .padding(top = 16.dp, bottom = 16.dp),
+//            color = Color.Gray.copy(alpha = 0.5f),
+//            thickness = 1.dp
+//        )
+//
+//        BalanceSection(
+//            title = "BUDGET",
+//            balance = categoryUIState.amount,
+//            currency = "VND",
+//            showTitle = true,
+//            showCurrencyBackground = true,
+//            currencyBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        DetailedBalanceSection_2(
+//            incomeAmount = "0",  // Example value, replace with actual data
+//            outcomeAmount = categoryUIState.amount,  // Example value, replace with actual data
+//            onIncomeClick = {},
+//            onOutcomeClick = {}
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        NormalSwitch(
+//            text = "Repeat this budget category",
+//            isChecked = isChecked,
+//            onCheckedChange = { isChecked = it },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.width(8.dp))
+//        IconButton(
+//            onClick = onEditClick,
+//            modifier = Modifier
+//                .align(Alignment.End)
+//                .background(Color(0xFFE3F2FD), CircleShape)
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.Edit,
+//                contentDescription = "Edit"
+//            )
+//        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Category icon:", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
 
-            Text(
-                text = categoryUIState.name,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
+                IconButton(
+                    onClick = { showBottomSheet = true },
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = CircleShape
+                        ),
+                ) {
+                    Image(
+                        painter = painterResource(
+                            id = categoryIconsList[categoryUIState.icon] ?: R.drawable.ic_category
+                        ),
+                        contentDescription = "Category Icon: ${categoryUIState.icon}",
+                    )
+                }
 
-        Divider(
-            modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp)
-                .padding(top = 16.dp, bottom = 16.dp),
-            color = Color.Gray.copy(alpha = 0.5f),
-            thickness = 1.dp
-        )
+                Spacer(modifier = Modifier.height(16.dp))
 
-        BalanceSection(
-            title = "BUDGET",
-            balance = categoryUIState.amount,
-            currency = "VND",
-            showTitle = true,
-            showCurrencyBackground = true,
-            currencyBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-        )
+                NameCategoryEditTextField(
+                    categoryUIState = viewModel.categoryUiState,
+                    onValueChange = viewModel::updateUiState
+                )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                BudgetEditTextField(
+                    categoryUIState = viewModel.categoryUiState,
+                    onValueChange = viewModel::updateUiState
+                )
 
-        DetailedBalanceSection_2(
-            incomeAmount = "0",  // Example value, replace with actual data
-            outcomeAmount = categoryUIState.amount,  // Example value, replace with actual data
-            onIncomeClick = {},
-            onOutcomeClick = {}
-        )
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+                NormalSwitch(
+                    text = "Repeat this budget category",
+                    isChecked = isChecked,
+                    onCheckedChange = { isChecked = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        NormalSwitch(
-            text = "Repeat this budget category",
-            isChecked = isChecked,
-            onCheckedChange = { isChecked = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+                Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+                NormalButton(
+                    text = "Save",
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.saveCategory()
+                            navigateBack()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                )
 
-        IconButton(
-            onClick = onEditClick,
-            modifier = Modifier
-                .align(Alignment.End)
-                .background(Color(0xFFE3F2FD), CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit"
-            )
+                if (showBottomSheet) {
+                    IconsBottomSheetCategoryDetail(
+                        categoryUIState = viewModel.categoryUiState,
+                        onIconSelected = { icon ->
+                            viewModel.updateUiState(viewModel.categoryUiState.copy(icon = icon))
+                            showBottomSheet = false
+                        },
+                        onDismissRequest = { showBottomSheet = false },
+                    )
+                }
+            }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IconsBottomSheetCategoryDetail(
+    categoryUIState: CategoryUIState,
+    onIconSelected: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = "Choose Category Icon",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 64.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(categoriesList.size) { index ->
+                    IconButton(
+                        onClick = { onIconSelected(categoriesList[index]) },
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = CircleShape
+                            )
+                    ) {
+                        Image(
+                            painter = painterResource(id = categoryIconsList[categoriesList[index]] ?: R.drawable.ic_category),
+                            contentDescription = "Category Icon: ${categoriesList[index]}",
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NameCategoryEditTextField(
+    categoryUIState: CategoryUIState,
+    onValueChange: (CategoryUIState) -> Unit = {}
+) {
+    OutlinedTextField(
+        value = categoryUIState.name,
+        onValueChange = { onValueChange(categoryUIState.copy(name = it)) },
+        label = { Text("Name") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun BudgetEditTextField(
+    categoryUIState: CategoryUIState,
+    onValueChange: (CategoryUIState) -> Unit = {}
+) {
+    OutlinedTextField(
+        value = categoryUIState.amount,
+        onValueChange = { onValueChange(categoryUIState.copy(amount = it)) },
+        label = { Text("Budget") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
