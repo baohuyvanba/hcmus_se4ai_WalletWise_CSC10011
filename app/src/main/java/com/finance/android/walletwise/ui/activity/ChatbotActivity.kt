@@ -75,8 +75,6 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
             val end = builder.length
             builder.addStyle(SpanStyle(fontFamily = FontFamily.Monospace), start, end)
         }
-
-        // Add other visitors as needed (e.g., Emphasis, Code, etc.)
     })
 
     return builder.toAnnotatedString()
