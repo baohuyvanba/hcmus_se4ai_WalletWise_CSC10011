@@ -51,7 +51,7 @@ fun CategoryListScreen(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-//            .padding(innerPadding)
+//           .padding(innerPadding)
             .background(Color(0xFFF5F5F5))
     ) {
         Column(
@@ -63,12 +63,8 @@ fun CategoryListScreen(
                 balance = "1500000",
                 currency = "VND"
             )
-//            LinearProgress()
             Spacer(modifier = Modifier.height(16.dp))
             CategoryList(categoryListState, navController = navController)
-
-//
-//
         }
     }
 }
@@ -106,7 +102,7 @@ fun LinearProgress() {
 
 
 @Composable
-fun BudgetProgressCard(category: Category, navController: NavController ){
+fun BudgetProgressCard(category: Category, navController: NavController) {
 
     Card(
         modifier = Modifier
